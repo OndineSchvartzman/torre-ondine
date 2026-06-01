@@ -1,0 +1,27 @@
+name: Torre de Control Diaria
+
+on:
+  schedule:
+    - cron: '30 13 * * 1-6'
+  workflow_dispatch:
+
+jobs:
+  generar-y-publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Instalar dependencias
+        run: pip install python-docx
+      - name: Generar Torre de Control
+        env:
+          SHEET_ID_PENDIENTES: ${{ secrets.SHEET_ID_PENDIENTES }}
+          SHEET_ID_FORMULARIO: ${{ secrets.SHEET_ID_FORMULARIO }}
+        run: python scripts/generate_torre.py
+      - name: Publicar en Netlify
+        env:
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: python scripts/deploy_netlify.py
