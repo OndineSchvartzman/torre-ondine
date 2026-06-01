@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Torre de Control · 1 jun 2026</title>
+<style>
+:root{color-scheme:light}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#F5F2EC}
+body{font-family:'Helvetica Neue',Arial,sans-serif;color:#2A2724;font-size:10.5pt;line-height:1.35;padding:22px 26px 48px}
+.page{max-width:1480px;margin:0 auto}
+
+/* ── Header ── */
+.titlebar{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #2A2724;padding-bottom:10px;margin-bottom:20px}
+.titlebar h1{font-family:'Helvetica Neue',Arial,sans-serif;font-weight:200;font-size:15pt;letter-spacing:6px;text-transform:uppercase;color:#2A2724}
+.titlebar .meta{color:#8C7B6E;font-size:8.5pt;text-align:right;line-height:1.6;letter-spacing:0.5px}
+
+/* ── Tabs ── */
+.tabs{display:flex;border-bottom:1px solid #D4C19A;margin-bottom:24px;background:#EDE9DF}
+.tab-btn{padding:9px 24px;font-size:8pt;letter-spacing:2px;text-transform:uppercase;color:#8C7B6E;cursor:pointer;border:none;background:none;border-bottom:2.5px solid transparent;margin-bottom:-1px;font-family:inherit;font-weight:500}
+.tab-btn.active{color:#2A2724;border-bottom-color:#8C5535;font-weight:600;background:#F5F2EC}
+.tab-btn:hover:not(.active){color:#5A4F44}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ── Chips compartidos ── */
+.chip{display:inline-block;font-size:7.5pt;letter-spacing:0.5px;padding:1px 7px;border-radius:2px;white-space:nowrap;flex-shrink:0;margin-top:1px}
+.chip-alert{background:#F9EDE4;border:1px solid #8C5535;color:#8C5535;font-weight:700}
+.chip-warn{background:#fdf5e6;border:1px solid #c9a030;color:#7a5c10;font-weight:700}
+.chip-urg{border:1px solid #D4C19A;color:#8C7B6E}
+.chip-tipo-D{border:1px solid #b8d0e8;color:#2a5f8a;background:#f0f6fb}
+.chip-tipo-S{border:1px solid #b8d4b0;color:#2e6e2e;background:#f0f8f0}
+.chip-tipo-P{border:1px solid #D4C19A;color:#8C5535;background:#FDFCF9}
+.chip-arq{border:0.5px solid #D4C19A;color:#8C7B6E}
+.chip-comm{border:0.5px solid #D4C19A;color:#8C7B6E;background:#FDFCF9}
+
+/* ── Agrupación por proyecto (Semanales, Persona, Categoría) ── */
+.proj-group{margin:8px 0 6px}
+.proj-group:first-child{margin-top:4px}
+.proj-group-name{
+  font-size:10.5pt;font-weight:600;color:#2A2724;
+  padding-bottom:4px;border-bottom:0.5px solid #D4C19A;
+  margin-bottom:2px;letter-spacing:0.2px
+}
+.proj-group-name .arq-sub{font-weight:600;font-size:10pt;color:#8C7B6E;margin-left:8px;letter-spacing:0}
+
+/* ── Filas de tarea (dentro de proj-group) ── */
+.pend-row{display:flex;align-items:flex-start;gap:8px;padding:4px 0 4px 8px;border-bottom:0.5px solid #EDE9DF}
+.pend-row:last-child{border-bottom:none}
+.pend-body{flex:1;min-width:0}
+.pend-text{font-size:9.5pt;color:#2A2724}
+.pend-text.is-urgent{font-weight:600}
+.pend-meta{font-size:8pt;color:#8C7B6E;margin-top:2px}
+
+/* ── Semanales ── */
+.week-strip{border-left:3px solid #D4C19A;padding:0 0 0 14px;margin-bottom:20px}
+.week-strip.is-travel{border-left-color:#8C5535;background:repeating-linear-gradient(135deg,transparent,transparent 5px,rgba(140,85,53,.04) 5px,rgba(140,85,53,.04) 10px);padding:8px 8px 8px 14px;border-radius:0 4px 4px 0}
+.week-label{font-size:8pt;text-transform:uppercase;letter-spacing:1.5px;color:#8C7B6E;margin-bottom:8px;font-weight:600}
+.travel-tag{font-size:8pt;color:#8C5535;margin-left:10px;font-style:italic}
+.mas-adelante{margin-top:28px;border-top:1px dashed #D4C19A;padding-top:18px}
+.mas-title{font-size:8pt;text-transform:uppercase;letter-spacing:2px;color:#8C7B6E;margin-bottom:14px}
+.mas-group{margin-bottom:16px}
+.mas-group-label{font-size:8pt;text-transform:uppercase;letter-spacing:1px;color:#8C7B6E;margin-bottom:6px;padding-bottom:4px;border-bottom:0.5px solid #E8E3D8}
+.empty-week{font-size:9pt;color:#8C7B6E;font-style:italic;padding:4px 0}
+
+/* ── Persona ── */
+.persona-section{margin-bottom:32px}
+.section-heading{font-family:'Helvetica Neue',Arial,sans-serif;font-size:10pt;font-weight:300;letter-spacing:3px;text-transform:uppercase;color:#5A4F44;border-bottom:1px solid #D4C19A;padding-bottom:6px;margin-bottom:16px}
+.persona-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.pcard{background:#FDFCF9;border:1px solid #D4C19A;padding:12px 14px}
+.pcard-label{font-size:7.5pt;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;color:#5A4F44;margin-bottom:8px}
+/* Proyecto dentro de card */
+.pcard-proj-group{margin-bottom:6px}
+.pcard-proj-group:last-child{margin-bottom:0}
+.pcard-proj-name{
+  font-size:9.5pt;font-weight:600;color:#2A2724;
+  padding:5px 0 3px;border-bottom:0.5px solid #D4C19A;
+  margin-bottom:3px
+}
+.pcard-proj-name:first-of-type{padding-top:2px}
+.pcard-item{font-size:9pt;padding:3px 0 3px 4px;border-bottom:0.5px solid #EDE9DF;color:#2A2724}
+.pcard-item:last-child{border-bottom:none}
+/* Persona dentro de card (para llamadas/whatsapp by-person) */
+.pcard-person-group{margin-bottom:8px}
+.pcard-person-group:last-child{margin-bottom:0}
+.pcard-person-name{
+  font-size:8.5pt;font-weight:600;color:#5A4F44;text-transform:uppercase;
+  letter-spacing:0.8px;padding:4px 0 3px;border-bottom:0.5px solid #D4C19A;
+  margin-bottom:3px
+}
+
+/* ── Gantt ── */
+.gantt-wrap{overflow-x:auto}
+.gantt-table{width:100%;border-collapse:collapse;table-layout:auto}
+.gantt-table th{font-size:7.5pt;text-transform:uppercase;letter-spacing:1px;color:#8C7B6E;padding:0 2px 8px;border-bottom:1.5px solid #D4C19A;font-weight:600;white-space:nowrap;vertical-align:bottom}
+.gantt-table td{padding:4px 2px;border-bottom:0.5px solid #E8E3D8;vertical-align:middle}
+.gantt-table tr:last-child td{border-bottom:none}
+.gh-name{text-align:left;padding-left:0 !important;padding-right:10px !important}
+.gh-phase{text-align:center}
+.gh-fase{text-align:left;padding-left:6px !important}
+.gh-deadline{padding-left:8px !important}
+.gh-arq{text-align:right}
+.g-name-cell{font-size:10pt;color:#2A2724;padding-right:10px !important;min-width:160px;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g-name-cell.is-urgent{font-weight:700}
+.g-name-cell.is-paused{color:#8C7B6E;font-style:italic}
+.g-phase-seg{width:36px;height:20px;border:1px solid #D4C19A;cursor:default;position:relative}
+.g-phase-seg.ph-done{background:#D4C19A;border-color:#B8A482}
+.g-phase-seg.ph-active{background:#8C5535;border-color:#6B3E24}
+.g-phase-seg.ph-active.ph-urgent{background:#5A2E10;border-color:#3A1C06}
+.g-phase-seg.ph-future{background:#E6E1D4;border-color:#C8BC9E}
+.g-phase-seg.ph-paused.ph-done{background:#D4CFC8;border-color:#B8B4AE}
+.g-phase-seg.ph-paused.ph-active{background:#8C7B6E;border-color:#6E6560}
+.g-phase-seg.ph-active::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.12)}
+.g-phase-name{font-size:8.5pt;color:#2A2724;padding-left:8px !important;white-space:nowrap}
+.g-phase-name.is-paused{color:#8C7B6E;font-style:italic}
+.g-deadline-cell{font-size:8.5pt;color:#8C7B6E;white-space:nowrap;padding-left:8px !important;min-width:80px}
+.g-arq-cell{font-size:8.5pt;color:#8C7B6E;text-align:right;white-space:nowrap;padding-left:6px !important}
+.gantt-legend{display:flex;gap:20px;margin-top:18px;font-size:8pt;color:#8C7B6E;align-items:center;flex-wrap:wrap;border-top:0.5px solid #E8E3D8;padding-top:12px}
+.legend-item{display:flex;align-items:center;gap:6px}
+.legend-box{width:16px;height:12px;border-radius:1px;border:1px solid #D4C19A}
+.gantt-group-head{font-size:7.5pt;text-transform:uppercase;letter-spacing:2px;color:#8C7B6E;padding:14px 0 4px;font-weight:600}
+.gantt-group-head td{border-bottom:1px solid #D4C19A !important;padding-bottom:4px !important}
+/* Fila de encabezado repetido (Gantt) — oculta en pantalla */
+.gantt-print-header-row{display:none}
+
+/* ── Categoría ── */
+.cat-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+.cat-col{background:#FDFCF9;border:1px solid #D4C19A;padding:14px 16px}
+.cat-header{font-size:7.5pt;text-transform:uppercase;letter-spacing:2.5px;font-weight:600;color:#5A4F44;border-bottom:1px solid #D4C19A;padding-bottom:6px;margin-bottom:10px}
+/* Proyecto dentro de columna categoría */
+.cat-proj-group{margin-bottom:10px}
+.cat-proj-group:last-child{margin-bottom:0}
+.cat-proj-name{
+  font-size:10pt;font-weight:600;color:#2A2724;text-transform:uppercase;
+  padding:4px 0 3px;border-bottom:0.5px solid #D4C19A;
+  margin-bottom:4px
+}
+.cat-proj-name .arq-sub{font-weight:400;font-size:8.5pt;color:#8C7B6E;margin-left:8px;letter-spacing:0;text-transform:none}
+.cat-task{padding:4px 0 4px 8px;border-bottom:0.5px solid #EDE9DF;display:flex;align-items:center;gap:0}
+.cat-task:last-child{border-bottom:none}
+.cat-task .ci-text{font-size:9.5pt;color:#2A2724;flex:1}
+.cat-urg-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#c0392b;flex-shrink:0;margin-left:6px;vertical-align:middle}
+.urgent-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#8C5535;margin-right:5px;vertical-align:middle;margin-top:-2px}
+.dismiss-btn{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;min-width:18px;border-radius:50%;border:1px solid #D4C19A;background:#FDFCF9;color:#8C7B6E;font-size:14px;line-height:1;cursor:pointer;flex-shrink:0;font-family:inherit;padding:0;transition:background .12s,color .12s,border-color .12s;margin-left:6px}
+.dismiss-btn:hover{background:#8C5535;color:#F5F2EC;border-color:#8C5535}
+.task-dismissed{display:none!important}
+.pcard-item{display:flex;align-items:center;gap:0}
+
+/* ── Wrapper para encabezado repetido en impresión ── */
+/* En pantalla: el prt-wrap es invisible, contenido fluye normalmente */
+.prt-wrap{display:block}
+.prt-head{display:none}
+.prt-body,.prt-row,.prt-cell{display:block}
+
+
+/* ── Títulos de sección: ocultos en pantalla, visibles al imprimir ── */
+.print-section-title {
+  display: none;
+}
+
+@media print {
+  /* ── CRÍTICO: forzar impresión de todos los backgrounds/colores ── */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* ── Número de página — esquina inferior derecha ── */
+  @page { size: A3 landscape; margin: 12mm 14mm; }
+  }
+
+  /* ── Fondo blanco para ahorrar tinta ── */
+  html, body { background: white !important; }
+  body { padding: 0 !important; color: #2A2724 !important; }
+  .page { max-width: 100% !important; }
+
+  /* ── Ocultar controles de pantalla ── */
+  .tabs, .print-bar { display: none !important; }
+
+  /* ── Mostrar TODOS los panels ── */
+  .tab-panel { display: block !important; }
+
+  /* ── Saltos de página entre secciones ── */
+  #tab-semanales  { page-break-before: avoid !important; break-before: avoid !important; }
+  #tab-persona    { page-break-before: always !important; break-before: page !important; }
+  #tab-gantt      { page-break-before: always !important; break-before: page !important; }
+  #tab-categoria  { page-break-before: always !important; break-before: page !important; }
+
+  .prt-wrap {
+    display: table !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+  .prt-head {
+    display: table-header-group !important;
+  }
+  .prt-body {
+    display: table-row-group !important;
+  }
+  .prt-row {
+    display: table-row !important;
+  }
+  .prt-cell {
+    display: table-cell !important;
+    vertical-align: top !important;
+  }
+  .prt-head-row {
+    display: table-row !important;
+  }
+  .prt-head-cell {
+    display: table-cell !important;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 200;
+    font-size: 8pt;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #2A2724;
+    border-bottom: 1.5px solid #2A2724;
+    padding: 0 0 6pt 0;
+    margin-bottom: 12pt;
+    white-space: nowrap;
+  }
+
+  /* ── Gantt: fila de encabezado repetida ── */
+  .gantt-print-header-row {
+    display: table-row !important;
+  }
+  .gantt-print-header-row th {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 200;
+    font-size: 8pt;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #2A2724;
+    border-bottom: 1.5px solid #2A2724 !important;
+    padding: 0 0 6pt !important;
+    text-align: left;
+  }
+
+  /* ── Titlebar ── */
+  .titlebar { padding-bottom: 6px; margin-bottom: 10px; }
+  .titlebar h1 { font-size: 11pt !important; letter-spacing: 5px; }
+  .titlebar .meta { font-size: 7pt; }
+
+  /* ── Semanales ── */
+  .week-strip { page-break-inside: avoid; break-inside: avoid; background: white !important; }
+  .week-strip.is-travel { background: white !important; }
+  .proj-group { page-break-inside: avoid; break-inside: avoid; }
+
+  /* ── Persona ── */
+  .persona-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  .pcard { page-break-inside: avoid; break-inside: avoid; background: white !important; border-color: #D4C19A !important; }
+
+  /* ── Gantt ── */
+  .gantt-wrap { overflow: visible !important; }
+  .gantt-table { font-size: 7pt !important; width: 100% !important; }
+  .g-name-cell  { max-width: 120px !important; font-size: 7pt !important; }
+  .g-phase-seg  { width: 20px !important; height: 13px !important; }
+  .g-phase-seg.ph-done   { background: #D4C19A !important; border-color: #B8A482 !important; }
+  .g-phase-seg.ph-active { background: #8C5535 !important; border-color: #6B3E24 !important; }
+  .g-phase-seg.ph-active.ph-urgent { background: #5A2E10 !important; }
+  .g-phase-seg.ph-future { background: #D8D0BE !important; border-color: #C8BC9E !important; }
+  .g-phase-seg.ph-paused.ph-done   { background: #D4CFC8 !important; }
+  .g-phase-seg.ph-paused.ph-active { background: #8C7B6E !important; }
+  .g-phase-name  { font-size: 6.5pt !important; }
+  .g-deadline-cell { font-size: 6.5pt !important; }
+  .g-arq-cell    { font-size: 6.5pt !important; }
+  .gantt-group-head { font-size: 6.5pt !important; }
+  .gantt-legend  { display: none !important; }
+
+  /* ── Categoría: columnas apiladas + salto de página entre cada una ── */
+  .cat-cols {
+    display: block !important;
+    gap: 0 !important;
+  }
+  .cat-col {
+    display: block !important;
+    width: 100% !important;
+    background: white !important;
+    border-color: #D4C19A !important;
+    page-break-before: always !important;
+    break-before: page !important;
+    margin-bottom: 0 !important;
+  }
+  .cat-col:first-child {
+    page-break-before: avoid !important;
+    break-before: avoid !important;
+  }
+  .cat-proj-group { page-break-inside: avoid; break-inside: avoid; }
+  .cat-urg-dot { background: #c0392b !important; }
+
+  /* ── Persona: salto de página entre secciones (Arquitecto / Proveedor / Comunicación) ── */
+  .persona-section {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+  .persona-section:first-child {
+    page-break-before: avoid !important;
+    break-before: avoid !important;
+  }
+
+  /* ── Chips ── */
+  .chip { font-size: 6pt !important; padding: 1px 4px !important; }
+  .chip-alert { background: #F9EDE4 !important; border-color: #8C5535 !important; color: #8C5535 !important; }
+  .chip-warn  { background: #fdf5e6 !important; border-color: #c9a030 !important; }
+  .chip-tipo-D { background: #f0f6fb !important; border-color: #b8d0e8 !important; }
+  .chip-tipo-S { background: #f0f8f0 !important; border-color: #b8d4b0 !important; }
+  .chip-tipo-P { background: white !important; border-color: #D4C19A !important; }
+  .chip-comm   { background: white !important; border-color: #D4C19A !important; }
+  .urgent-dot  { background: #8C5535 !important; }
+
+  /* ── A3: escala completa para aprovechar el tamaño de hoja ── */
+  body.print-a3 {
+    font-size: 11pt !important;
+  }
+  body.print-a3 .pcard-text      { font-size: 10pt !important; }
+  body.print-a3 .pcard-label     { font-size: 9pt !important; }
+  body.print-a3 .section-heading { font-size: 12pt !important; }
+  body.print-a3 .cat-header      { font-size: 9pt !important; }
+  body.print-a3 .cat-item        { font-size: 10pt !important; }
+  body.print-a3 .week-label      { font-size: 10pt !important; }
+  body.print-a3 .task-text       { font-size: 10pt !important; }
+  body.print-a3 .chip            { font-size: 7.5pt !important; padding: 2px 6px !important; }
+  body.print-a3 .titlebar h1     { font-size: 14pt !important; }
+  body.print-a3 .gantt-table     { font-size: 9.5pt !important; }
+  body.print-a3 .g-phase-seg     { width: 30px !important; height: 18px !important; }
+  body.print-a3 .g-name-cell     { max-width: 200px !important; font-size: 9.5pt !important; }
+  body.print-a3 .g-phase-name    { font-size: 8pt !important; }
+  body.print-a3 .g-deadline-cell { font-size: 8pt !important; }
+  body.print-a3 .g-arq-cell      { font-size: 8pt !important; }
+  body.print-a3 .gantt-group-head{ font-size: 8pt !important; }
+  body.print-a3 .pcard           { padding: 12px 14px !important; }
+  body.print-a3 .persona-grid    { grid-template-columns: repeat(2, 1fr) !important; gap: 14px !important; }
+}
+
+/* ── Barra de impresión ── */
+.print-bar{display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-bottom:14px}
+.print-bar span{font-size:8pt;letter-spacing:1px;text-transform:uppercase;color:#8C7B6E;margin-right:4px}
+.print-btn{font-family:'Helvetica Neue',Arial,sans-serif;font-size:8pt;letter-spacing:1.5px;text-transform:uppercase;padding:5px 14px;border:1px solid #D4C19A;background:#FDFCF9;color:#5A4F44;cursor:pointer;border-radius:2px;transition:background .15s,color .15s}
+.print-btn:hover{background:#2A2724;color:#F5F2EC;border-color:#2A2724}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="titlebar">
+    <h1>TORRE DE CONTROL</h1>
+    <div class="meta">
+      Estudio Ondine Schvartzman<br>
+      1 jun 2026 &nbsp;·&nbsp; 81 pendientes &nbsp;·&nbsp; 33 urgentes
+    </div>
+  </div>
+
+  <div class="print-bar">
+    <span>Guardar / Imprimir</span>
+    <button class="print-btn" id="btn-a4">PDF A4</button>
+    <button class="print-btn" id="btn-a3">PDF A3</button>
+    <button class="print-btn" id="btn-restore" style="margin-left:12px;border-color:#8C7B6E;color:#8C7B6E" title="Volver a mostrar todas las tareas marcadas como hechas">Restaurar ocultas</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="semanales">Semanales</button>
+    <button class="tab-btn" data-tab="persona">Persona</button>
+    <button class="tab-btn" data-tab="gantt">Gantt</button>
+    <button class="tab-btn" data-tab="categoria">Categoría</button>
+  </div>
+
+  <div id="tab-semanales" class="tab-panel active">
+    <div class="prt-wrap">
+  <div class="prt-head">
+    <div class="prt-head-row">
+      <div class="prt-head-cell">TORRE DE CONTROL &nbsp;·&nbsp; Semana a semana</div>
+    </div>
+  </div>
+  <div class="prt-body">
+    <div class="prt-row">
+      <div class="prt-cell">
+        <div class="week-strip">
+  <div class="week-label">Sem 1 jun – 7 jun</div>
+  <div class="proj-group"><div class="proj-group-name">PENTHOUSE NICHI BELMONT<span class="arq-sub">Vanessa</span></div><div class="pend-row" data-tid="e6ea5eef221d">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Cerrar vistas de diseño y aprobar acabados (urgente para Roosevelt)</div>
+    <div class="pend-meta">URGENTE</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="e6ea5eef221d" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="bf9bfe5b84b4">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Trazzo: pendiente entregar cotización (planos de iluminación ya entregados)</div>
+    <div class="pend-meta">URGENTE</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="bf9bfe5b84b4" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">JOANNA SOLOMON (MIAMI)<span class="arq-sub">Alexia</span></div><div class="pend-row" data-tid="165100550bad">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Definir telas para Rodrigo — proyecto atrasado, bloqueado por indecisión en telas</div>
+    <div class="pend-meta">ATRASADO · lead time vencido</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="165100550bad" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="4a16176b0cd9">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Definir butaca de sala (no se está haciendo aún)</div>
+    <div class="pend-meta">ATRASADO</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="4a16176b0cd9" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">MALLORCA (ESPAÑA)<span class="arq-sub">Hugo</span></div><div class="pend-row" data-tid="fb87370e975c">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>URGENTE: entregar plano eléctrico completo</div>
+    <div class="pend-meta">URGENTE</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="fb87370e975c" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="20acbc3aeca2">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>URGENTE: entregar elevaciones</div>
+    <div class="pend-meta">URGENTE</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="20acbc3aeca2" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">JUAN FERNANDO (SOLANA)<span class="arq-sub">Carlos</span></div><div class="pend-row" data-tid="e375956e243e">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 22/05] Bajar el precio del bar con otro acabado</div>
+    <div class="pend-meta">URGENTE · formulario 22 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="e375956e243e" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="5c85d3c1b3ba">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 26/05] Ver con Yuriko el detalle exacto de la puerta vaivén de cocina: hasta dónde llega el enchape y dónde va pintura en el marco</div>
+    <div class="pend-meta">esta semana · formulario 26 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="5c85d3c1b3ba" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="5b85853d64e2">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 27/05] Cotizar pintura de paredes segundo piso (Yuriko no entrega paredes que no sean blancas)</div>
+    <div class="pend-meta">próxima semana · formulario 27 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="5b85853d64e2" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">NICOLE (ROOSEVELT)<span class="arq-sub">Angie</span></div><div class="pend-row" data-tid="0fac90d68d83">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Cliente debe aprobar y pagar cotización Trazzo para entregar plano a la Inmobiliaria</div>
+    <div class="pend-meta">URGENTE · Nicole no ha pagado</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="0fac90d68d83" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="d15ba813c873">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Ver diseño con Ondine (vistas para definir muebles y acabados)</div>
+    <div class="pend-meta">esta semana</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="d15ba813c873" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="67754b9fbe09">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Ver elevaciones con Ondine para ubicar tomas eléctricas (independizar luz isla, interruptor pasillo servicio, cables TV)</div>
+    <div class="pend-meta">esta semana</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="67754b9fbe09" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="dcfcb3d97869">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 22/05] Diseñar baño de visitas con Ondine para informar a Hans qué mármol comprar en Meglio</div>
+    <div class="pend-meta">próxima semana · formulario 22 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="dcfcb3d97869" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="a9d456513421">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 28/05] Elegir la piedra de cocina con Ondine y ver qué espacios quedan con techo gris</div>
+    <div class="pend-meta">esta semana · formulario 28 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="a9d456513421" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">ROOSEVELT NICOLE<span class="arq-sub">Angie</span></div><div class="pend-row" data-tid="a37669a2b6ad">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 22/05] Diseñar baño de visitas con Ondine para informar a Hans que marmol comprara en Meglio</div>
+    <div class="pend-meta">formulario 22 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="a37669a2b6ad" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="20b389c0c578">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 26/05] Nicole no ha pagado Trazzo</div>
+    <div class="pend-meta">formulario 26 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="20b389c0c578" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="4ab0f1bd79e8">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 28/05] Elegir la piedra de cocina con Ondine y ver qué espacios quedan con techo gris</div>
+    <div class="pend-meta">formulario 28 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="4ab0f1bd79e8" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">SOLANA JUAN FERNANDO<span class="arq-sub">Carlos</span></div><div class="pend-row" data-tid="cc12689ea9ca">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 22/05] Bajar el precio del bar con otro acabado</div>
+    <div class="pend-meta">formulario 22 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="cc12689ea9ca" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="4a7ed1583327">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 26/05] Ver con Yuriko el detalle exacto de la puerta vaivén de cocina para ver hasta donde llega el enchape y dónde va pintura en el marco.</div>
+    <div class="pend-meta">formulario 26 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="4a7ed1583327" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="42cd06aef118">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 27/05] Cotizar pintura de paredes segundo piso, ya que Yuriko no puede entregar paredes que no sean blancas.</div>
+    <div class="pend-meta">formulario 27 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="42cd06aef118" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">CASA LOS CABOS<span class="arq-sub">Carlos</span></div><div class="pend-row" data-tid="dc9694e5f7c0">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 27/05] Leoncio de Limasound debe confirmar si necesita reunión virtual para explicarle proyecto, ya se le enviaron planos</div>
+    <div class="pend-meta">formulario 27 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="dc9694e5f7c0" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">LOS CABOS (MÉXICO)<span class="arq-sub">Carlos</span></div><div class="pend-row" data-tid="5976e88c4450">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 27/05] Leoncio de Limasound debe confirmar si necesita reunión virtual (se enviaron planos)</div>
+    <div class="pend-meta">esta semana · formulario 27 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="5976e88c4450" title="Marcar como hecho">−</button>
+</div></div>
+</div>
+<div class="week-strip">
+  <div class="week-label">Sem 8 jun – 14 jun</div>
+  <div class="empty-week">Sin pendientes esta semana</div>
+</div>
+<div class="week-strip">
+  <div class="week-label">Sem 15 jun – 21 jun</div>
+  <div class="proj-group"><div class="proj-group-name">COTI Y TITA<span class="arq-sub">Angie</span></div><div class="pend-row" data-tid="efd5824dc60e">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Elegir tela para butacas (2 muestras enviadas al cliente, esperando confirmación)</div>
+    <div class="pend-meta">URGENTE · entrega 15 jun</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="efd5824dc60e" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="9f87a7b217ff">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Avisar a Andrés Cabrera (empapelador) con una semana de anticipación para instalación papel tapiz. Coti aún no le paga.</div>
+    <div class="pend-meta">URGENTE · llamar esta semana para entregar 15 jun</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="9f87a7b217ff" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="39e351f4d319">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Resolver problema tablero de escritorio (Malena lo avanzó con medidas incorrectas)</div>
+    <div class="pend-meta">URGENTE</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="39e351f4d319" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="eaae8a49debc">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Definir colores de pintura con Malena</div>
+    <div class="pend-meta">URGENTE</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="eaae8a49debc" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="a4eb8246bdf9">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Decidir con contratista Eduardo sobre voltaje de luminaria que traen los clientes</div>
+    <div class="pend-meta">URGENTE</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="a4eb8246bdf9" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="6bf564d36aae">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Definir si zócalo va del mismo color que papel tapiz; consultar si Malena lo pinta</div>
+    <div class="pend-meta">URGENTE</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="6bf564d36aae" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="bd11c7ac5da1">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Malena debe enviar muestras de esterillas</div>
+    <div class="pend-meta">URGENTE</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="bd11c7ac5da1" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="e94bd9780e00">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Indicar a Malena que se van a usar tiradores en mueble de televisión</div>
+    <div class="pend-meta">URGENTE</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="e94bd9780e00" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="8e08b242917e">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 28/05] Coordinar con Ondine la aprobación para fabricar los muebles</div>
+    <div class="pend-meta">URGENTE · formulario 28 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="8e08b242917e" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="1891fa568c8b">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Elegir mármol — cliente sin respuesta</div>
+    <div class="pend-meta">URGENTE · sin respuesta cliente</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="1891fa568c8b" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="ba3c9a593110">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Escoger resto de luminarias con Ondine</div>
+    <div class="pend-meta">URGENTE</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="ba3c9a593110" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="b07e9fbd6e65">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Medir puntos en obra para la cama eléctrica</div>
+    <div class="pend-meta">URGENTE</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="b07e9fbd6e65" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="bfcf4ee0ccc2">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 27/05] Pedir rack a Tita y Coti para confirmar medidas en hornacina de mueble TV</div>
+    <div class="pend-meta">URGENTE · formulario 27 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="bfcf4ee0ccc2" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="50674c802370">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 28/05] Confirmar con los clientes si fueron a ver las luminarias y si quedan aprobadas para cotizar</div>
+    <div class="pend-meta">esta semana · formulario 28 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="50674c802370" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">JOANNA SOLOMON (MIAMI)<span class="arq-sub">Alexia</span></div><div class="pend-row" data-tid="d35c35b3f223">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Rodrigo viaja a Miami: tomar medidas y coordinar con Anahí instalación + drywall pendiente</div>
+    <div class="pend-meta">coordinar fecha</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="d35c35b3f223" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="649f8f67ca79">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Alfombras: cliente no ha pagado, indecisa. ¿Llegan al contenedor?</div>
+    <div class="pend-meta">definir fecha contenedor</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="649f8f67ca79" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">JUAN FERNANDO (SOLANA)<span class="arq-sub">Carlos</span></div><div class="pend-row" data-tid="466376508d8f">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 26/05] Ondine debe escoger papel decorativo del estar</div>
+    <div class="pend-meta">este mes · formulario 26 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="466376508d8f" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">MEDALITH (ROOSEVELT)<span class="arq-sub">Alexia</span></div><div class="pend-row" data-tid="b723a90a54eb">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Cerrar diseño: falta mostrar propuesta actualizada a cliente (70% cerrado)</div>
+    <div class="pend-meta">jun 2026 · cerrar antes de plano final</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="b723a90a54eb" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="655264b9f7b7">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Trazzo: pendiente cotización (ya entregó planos de iluminación del proyecto)</div>
+    <div class="pend-meta">jun 2026</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="655264b9f7b7" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="e068ad376736">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Automatización con Tcinno: gestionar contratación</div>
+    <div class="pend-meta">jun 2026</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="e068ad376736" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">NICOLE (ROOSEVELT)<span class="arq-sub">Angie</span></div><div class="pend-row" data-tid="18244ea5c4a4">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Meglio debe enviar cotización de cocina (ya se eligieron acabados)</div>
+    <div class="pend-meta">jun 2026</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="18244ea5c4a4" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">COCINA ONDINE (PERSONAL)<span class="arq-sub">Isa</span></div><div class="pend-row" data-tid="9713988e8ca3">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Cotizar papel tapiz seleccionado</div>
+    <div class="pend-meta">jun 2026</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="9713988e8ca3" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="2cc3508c5237">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Elegir telas para banquetas del comedor diario</div>
+    <div class="pend-meta">jun 2026</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="2cc3508c5237" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="1ea9f0570c05">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Coordinar fecha de entrega del piso de la cocina</div>
+    <div class="pend-meta">jun 2026</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="1ea9f0570c05" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">JOANNA (MIAMI)<span class="arq-sub">Alexia</span></div><div class="pend-row" data-tid="aca29d162718">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Elegir silla faltante (1 silla por decidir diseño)</div>
+    <div class="pend-meta">jun 2026</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="aca29d162718" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="ed1b7ed0db06">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>3 cosas chicas aún por elegir (no especificadas)</div>
+    <div class="pend-meta">jun 2026</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="ed1b7ed0db06" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">SOLANA JUAN FERNANDO<span class="arq-sub">Carlos</span></div><div class="pend-row" data-tid="76ba865cd3c5">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 26/05] Ondine debe escoger papel decorativo del estar</div>
+    <div class="pend-meta">formulario 26 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="76ba865cd3c5" title="Marcar como hecho">−</button>
+</div></div>
+</div>
+<div class="week-strip">
+  <div class="week-label">Sem 22 jun – 28 jun</div>
+  <div class="empty-week">Sin pendientes esta semana</div>
+</div>
+<div class="week-strip">
+  <div class="week-label">Sem 29 jun – 5 jul</div>
+  <div class="proj-group"><div class="proj-group-name">ONRUBIA (SOLANA)<span class="arq-sub">Alexia</span></div><div class="pend-row" data-tid="bc62af94b9f1">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Aprobar telas — Rodrigo necesita telas en julio 2026 para fabricar. Lead time vencido.</div>
+    <div class="pend-meta">URGENTE · Rodrigo necesita telas jul</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="bc62af94b9f1" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="162771514561">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Ondine define telas finales con cliente en junio 2026</div>
+    <div class="pend-meta">jun 2026</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="162771514561" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">JOELYN PESTANA / DIONISIO<span class="arq-sub">Vanessa</span></div><div class="pend-row" data-tid="e7948e011aab">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Aprobación municipal: aprobar en junio para echar a andar todo (clientes viajan julio)</div>
+    <div class="pend-meta">jun 2026 · clave para diciembre</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="e7948e011aab" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="e93767e7fb99">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Cliente debe elegir proveedor (se mandaron cotizaciones)</div>
+    <div class="pend-meta">jun 2026</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="e93767e7fb99" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">LOS CABOS (MÉXICO)<span class="arq-sub">Isa</span></div><div class="pend-row" data-tid="910c8f796a4a">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Cerrar diseño de closets (reunión lunes con Isabella y Patty)</div>
+    <div class="pend-meta">lunes próximo</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="910c8f796a4a" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="b6360041aea5">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Cerrar plano eléctrico (tomacorrientes) post-reunión lunes y enviar para cotizar en México</div>
+    <div class="pend-meta">esta semana post-reunión</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="b6360041aea5" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="b56b88d19596">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Cerrar muebles sueltos pendientes y built-in</div>
+    <div class="pend-meta">jun-jul 2026</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="b56b88d19596" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="f4725d27a772">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Cotización muebles fijos, closets, cocina con proveedor mexicano</div>
+    <div class="pend-meta">jul 2026</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="f4725d27a772" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="0321da756f81">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Ir a elegir telas con Patty antes del 4 de julio (ella se va de viaje y quiere ver acabados para comprar en México)</div>
+    <div class="pend-meta">antes 4 jul · Patty viaja</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="0321da756f81" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="511319d3ea39">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Rediseñar playroom — a Patty no le convence el diseño actual</div>
+    <div class="pend-meta">jun-jul 2026 · reunión lunes</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="511319d3ea39" title="Marcar como hecho">−</button>
+</div></div>
+</div>
+<div class="week-strip">
+  <div class="week-label">Sem 6 jul – 12 jul</div>
+  <div class="empty-week">Sin pendientes esta semana</div>
+</div>
+<div class="week-strip">
+  <div class="week-label">Sem 13 jul – 19 jul</div>
+  <div class="proj-group"><div class="proj-group-name">TERRAZA ANITA BITTAR<span class="arq-sub">Isa</span></div><div class="pend-row" data-tid="bdf390beafc8">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Elegir luminarias (puntos de luz instalados, falta elegir artefactos)</div>
+    <div class="pend-meta">esta semana · cronograma 2da sem jul</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="bdf390beafc8" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="636d913f5c57">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Elegir telas definitivas (Ondine fue ayer a ver telas — confirmar selección)</div>
+    <div class="pend-meta">esta semana</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="636d913f5c57" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="6214597b6209">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Alfombra y toldos en producción (1 mes demora) — 2da semana junio termina obra sucia</div>
+    <div class="pend-meta">jun-jul 2026</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="6214597b6209" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">NICOLE (ROOSEVELT)<span class="arq-sub">Angie</span></div><div class="pend-row" data-tid="2921f21d16af">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 22/05] Terminar de diseñar habitación principal</div>
+    <div class="pend-meta">1-2 meses · formulario 22 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="2921f21d16af" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">LOS CABOS (MÉXICO)<span class="arq-sub">Isa</span></div><div class="pend-row" data-tid="41ddd9b8e563">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>BBQ y muebles de exterior: sin cerrar</div>
+    <div class="pend-meta">jul 2026</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="41ddd9b8e563" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">SIMÓN<span class="arq-sub">Hugo</span></div><div class="pend-row" data-tid="34b53f2e2555">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Continuar detalle arquitectónico en AUTOCAD (toda la casa)</div>
+    <div class="pend-meta">en proceso</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="34b53f2e2555" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">ROOSEVELT NICOLE<span class="arq-sub">Angie</span></div><div class="pend-row" data-tid="4b8e485b9f67">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>[FORMULARIO 22/05] Terminar de diseñar habitación principal</div>
+    <div class="pend-meta">formulario 22 may</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="4b8e485b9f67" title="Marcar como hecho">−</button>
+</div></div>
+</div>
+<div class="week-strip">
+  <div class="week-label">Sem 20 jul – 26 jul</div>
+  <div class="empty-week">Sin pendientes esta semana</div>
+</div>
+<div class="week-strip">
+  <div class="week-label">Sem 27 jul – 2 ago</div>
+  <div class="proj-group"><div class="proj-group-name">ANDREA SACIO (PUERTO RICO)<span class="arq-sub">Vanessa</span></div><div class="pend-row" data-tid="98ed4ed8aca2">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Andrea viene a Lima martes próximo (jun) para ver y elegir acabados — solo puede martes</div>
+    <div class="pend-meta">martes próximo · jun 2026</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="98ed4ed8aca2" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="eb4ac2405ce3">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Cerrar acabados y diseño con Andrea antes de agosto (bebé nace agosto — deadline biológico)</div>
+    <div class="pend-meta">antes ago 2026 · deadline biológico</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="eb4ac2405ce3" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">JUAN MIGUEL RAFFO<span class="arq-sub">Carlos</span></div><div class="pend-row" data-tid="d1e76a58affd">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Reunión mañana con esposa Ceci — ver diseño sala/comedor/estar y definir muebles pendientes</div>
+    <div class="pend-meta">lunes 1 jun · reunión Ceci</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="d1e76a58affd" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="62481ca43dd3">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Cotización obra con maestro local en stand-by (Eduardo era caro, maestrito bajó precio pero calidad dudosa)</div>
+    <div class="pend-meta">jun 2026</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="62481ca43dd3" title="Marcar como hecho">−</button>
+</div><div class="pend-row" data-tid="4370a3ef66bd">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Cerrar selección: lámpara, telas y materiales faltantes (diseño 70%)</div>
+    <div class="pend-meta">jun-jul 2026</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="4370a3ef66bd" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">ONRUBIA (SOLANA)<span class="arq-sub">Alexia</span></div><div class="pend-row" data-tid="0ad18ff8f0a3">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Reunión con cliente en julio (viene de viaje) — ver diseño y definir muebles sueltos pendientes</div>
+    <div class="pend-meta">jul 2026 · cliente viene de viaje</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="0ad18ff8f0a3" title="Marcar como hecho">−</button>
+</div></div>
+</div>
+<div class="week-strip">
+  <div class="week-label">Sem 3 ago – 9 ago</div>
+  <div class="proj-group"><div class="proj-group-name">SIMÓN<span class="arq-sub">Hugo</span></div><div class="pend-row" data-tid="30dbb271211c">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Diseño de interiorismo completo pendiente (aún no se inicia esta etapa)</div>
+    <div class="pend-meta">post-arquitectura</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="30dbb271211c" title="Marcar como hecho">−</button>
+</div></div><div class="proj-group"><div class="proj-group-name">DEL RÍO (CASUARINAS)<span class="arq-sub">Angie</span></div><div class="pend-row" data-tid="90d6e86bc673">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Avanzar elevaciones para el proyecto (en paralelo con espera de permisos)</div>
+    <div class="pend-meta">espera permisos · sin fecha</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="90d6e86bc673" title="Marcar como hecho">−</button>
+</div></div>
+</div>
+<div class="mas-adelante"><div class="mas-title">Más adelante</div><div class="mas-group"><div class="mas-group-label">Mediano plazo</div><div class="proj-group"><div class="proj-group-name">BLAS CERDEÑA (COX)</div><div class="pend-row" data-tid="a0829712edeb">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Presentar diseño de interiorismo a Blas Cerdeña (COX). Decidir si se toma el proyecto.</div>
+    <div class="pend-meta">cuando se decida</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="a0829712edeb" title="Marcar como hecho">−</button>
+</div></div></div><div class="mas-group"><div class="mas-group-label">Largo plazo / sin fecha</div><div class="proj-group"><div class="proj-group-name">LINDY ROTHSTEIN (BOCA RATÓN)<span class="arq-sub">Isa</span></div><div class="pend-row" data-tid="52b03a7fb5ac">
+  <div class="pend-body">
+    <div class="pend-text"><span style="margin-right:5px;color:#8C7B6E">•</span>Elegir tela para retomar el proyecto (proyecto pausado)</div>
+    <div class="pend-meta">EN PAUSA</div>
+  </div>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end;max-width:260px"></div>
+  <button class="dismiss-btn" data-tid="52b03a7fb5ac" title="Marcar como hecho">−</button>
+</div></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+  </div>
+
+  <div id="tab-persona" class="tab-panel">
+    <div class="prt-wrap">
+  <div class="prt-head">
+    <div class="prt-head-row">
+      <div class="prt-head-cell">TORRE DE CONTROL &nbsp;·&nbsp; Por persona</div>
+    </div>
+  </div>
+  <div class="prt-body">
+    <div class="prt-row">
+      <div class="prt-cell">
+        <div class="persona-section"><div class="section-heading">Por Arquitecto</div><div class="persona-grid"><div class="pcard"><div class="pcard-label">Carlos</div><div class="pcard-proj-group"><div class="pcard-proj-name">Juan Fernando (Solana)</div><div class="pcard-item" data-tid="e375956e243e"><span style="flex:1">— [FORMULARIO 22/05] Bajar el precio del bar con otro acabado</span><button class="dismiss-btn" data-tid="e375956e243e" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="5c85d3c1b3ba"><span style="flex:1">— [FORMULARIO 26/05] Ver con Yuriko el detalle exacto de la puerta vaivén de cocina: hasta dónde llega el enchape y dónde va pintura en el marco</span><button class="dismiss-btn" data-tid="5c85d3c1b3ba" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="5b85853d64e2"><span style="flex:1">— [FORMULARIO 27/05] Cotizar pintura de paredes segundo piso (Yuriko no entrega paredes que no sean blancas)</span><button class="dismiss-btn" data-tid="5b85853d64e2" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="466376508d8f"><span style="flex:1">— [FORMULARIO 26/05] Ondine debe escoger papel decorativo del estar</span><button class="dismiss-btn" data-tid="466376508d8f" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="e579f28c535a"><span style="flex:1">— Diseño sótano: mandar planos al proveedor para built-in, definir cava, taller, bar</span><button class="dismiss-btn" data-tid="e579f28c535a" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="838daf3a4e8a"><span style="flex:1">— Falta diseñar cosas para el dúplex (detalles pendientes)</span><button class="dismiss-btn" data-tid="838daf3a4e8a" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Solana Juan Fernando</div><div class="pcard-item" data-tid="cc12689ea9ca"><span style="flex:1">— [FORMULARIO 22/05] Bajar el precio del bar con otro acabado</span><button class="dismiss-btn" data-tid="cc12689ea9ca" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="4a7ed1583327"><span style="flex:1">— [FORMULARIO 26/05] Ver con Yuriko el detalle exacto de la puerta vaivén de cocina para ver hasta donde llega el enchape y dónde va pintura en el marco.</span><button class="dismiss-btn" data-tid="4a7ed1583327" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="42cd06aef118"><span style="flex:1">— [FORMULARIO 27/05] Cotizar pintura de paredes segundo piso, ya que Yuriko no puede entregar paredes que no sean blancas.</span><button class="dismiss-btn" data-tid="42cd06aef118" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="76ba865cd3c5"><span style="flex:1">— [FORMULARIO 26/05] Ondine debe escoger papel decorativo del estar</span><button class="dismiss-btn" data-tid="76ba865cd3c5" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Casa Los Cabos</div><div class="pcard-item" data-tid="dc9694e5f7c0"><span style="flex:1">— [FORMULARIO 27/05] Leoncio de Limasound debe confirmar si necesita reunión virtual para explicarle proyecto, ya se le enviaron planos</span><button class="dismiss-btn" data-tid="dc9694e5f7c0" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Juan Miguel Raffo</div><div class="pcard-item" data-tid="d1e76a58affd"><span style="flex:1">— Reunión mañana con esposa Ceci — ver diseño sala/comedor/estar y definir muebles pendientes</span><button class="dismiss-btn" data-tid="d1e76a58affd" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="62481ca43dd3"><span style="flex:1">— Cotización obra con maestro local en stand-by (Eduardo era caro, maestrito bajó precio pero calidad dudosa)</span><button class="dismiss-btn" data-tid="62481ca43dd3" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="4370a3ef66bd"><span style="flex:1">— Cerrar selección: lámpara, telas y materiales faltantes (diseño 70%)</span><button class="dismiss-btn" data-tid="4370a3ef66bd" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Los Cabos (México)</div><div class="pcard-item" data-tid="5976e88c4450"><span style="flex:1">— [FORMULARIO 27/05] Leoncio de Limasound debe confirmar si necesita reunión virtual (se enviaron planos)</span><button class="dismiss-btn" data-tid="5976e88c4450" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Lobby Solana</div><div class="pcard-item" data-tid="8b2eb06af225"><span style="flex:1">— Mandar a hacer sofá y elegir silla del portero</span><button class="dismiss-btn" data-tid="8b2eb06af225" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="512cbbd231cf"><span style="flex:1">— Elegir luces decorativas con Karen Manheim (Trazzo)</span><button class="dismiss-btn" data-tid="512cbbd231cf" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="cbd51730eec4"><span style="flex:1">— Elegir arte para el lobby</span><button class="dismiss-btn" data-tid="cbd51730eec4" title="Marcar como hecho">−</button></div></div></div><div class="pcard"><div class="pcard-label">Alexia</div><div class="pcard-proj-group"><div class="pcard-proj-name">Joanna Solomon (Miami)</div><div class="pcard-item" data-tid="165100550bad"><span style="flex:1">— Definir telas para Rodrigo — proyecto atrasado, bloqueado por indecisión en telas</span><button class="dismiss-btn" data-tid="165100550bad" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="4a16176b0cd9"><span style="flex:1">— Definir butaca de sala (no se está haciendo aún)</span><button class="dismiss-btn" data-tid="4a16176b0cd9" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="d35c35b3f223"><span style="flex:1">— Rodrigo viaja a Miami: tomar medidas y coordinar con Anahí instalación + drywall pendiente</span><button class="dismiss-btn" data-tid="d35c35b3f223" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="649f8f67ca79"><span style="flex:1">— Alfombras: cliente no ha pagado, indecisa. ¿Llegan al contenedor?</span><button class="dismiss-btn" data-tid="649f8f67ca79" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Onrubia (Solana)</div><div class="pcard-item" data-tid="bc62af94b9f1"><span style="flex:1">— Aprobar telas — Rodrigo necesita telas en julio 2026 para fabricar. Lead time vencido.</span><button class="dismiss-btn" data-tid="bc62af94b9f1" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="0ad18ff8f0a3"><span style="flex:1">— Reunión con cliente en julio (viene de viaje) — ver diseño y definir muebles sueltos pendientes</span><button class="dismiss-btn" data-tid="0ad18ff8f0a3" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="162771514561"><span style="flex:1">— Ondine define telas finales con cliente en junio 2026</span><button class="dismiss-btn" data-tid="162771514561" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Medalith (Roosevelt)</div><div class="pcard-item" data-tid="b723a90a54eb"><span style="flex:1">— Cerrar diseño: falta mostrar propuesta actualizada a cliente (70% cerrado)</span><button class="dismiss-btn" data-tid="b723a90a54eb" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="655264b9f7b7"><span style="flex:1">— Trazzo: pendiente cotización (ya entregó planos de iluminación del proyecto)</span><button class="dismiss-btn" data-tid="655264b9f7b7" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="e068ad376736"><span style="flex:1">— Automatización con Tcinno: gestionar contratación</span><button class="dismiss-btn" data-tid="e068ad376736" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Joanna (Miami)</div><div class="pcard-item" data-tid="aca29d162718"><span style="flex:1">— Elegir silla faltante (1 silla por decidir diseño)</span><button class="dismiss-btn" data-tid="aca29d162718" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="ed1b7ed0db06"><span style="flex:1">— 3 cosas chicas aún por elegir (no especificadas)</span><button class="dismiss-btn" data-tid="ed1b7ed0db06" title="Marcar como hecho">−</button></div></div></div><div class="pcard"><div class="pcard-label">Vanessa</div><div class="pcard-proj-group"><div class="pcard-proj-name">PentHouse Nichi Belmont</div><div class="pcard-item" data-tid="e6ea5eef221d"><span style="flex:1">— Cerrar vistas de diseño y aprobar acabados (urgente para Roosevelt)</span><button class="dismiss-btn" data-tid="e6ea5eef221d" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="bf9bfe5b84b4"><span style="flex:1">— Trazzo: pendiente entregar cotización (planos de iluminación ya entregados)</span><button class="dismiss-btn" data-tid="bf9bfe5b84b4" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Andrea Sacio (Puerto Rico)</div><div class="pcard-item" data-tid="98ed4ed8aca2"><span style="flex:1">— Andrea viene a Lima martes próximo (jun) para ver y elegir acabados — solo puede martes</span><button class="dismiss-btn" data-tid="98ed4ed8aca2" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="eb4ac2405ce3"><span style="flex:1">— Cerrar acabados y diseño con Andrea antes de agosto (bebé nace agosto — deadline biológico)</span><button class="dismiss-btn" data-tid="eb4ac2405ce3" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Joelyn Pestana / Dionisio</div><div class="pcard-item" data-tid="e7948e011aab"><span style="flex:1">— Aprobación municipal: aprobar en junio para echar a andar todo (clientes viajan julio)</span><button class="dismiss-btn" data-tid="e7948e011aab" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="e93767e7fb99"><span style="flex:1">— Cliente debe elegir proveedor (se mandaron cotizaciones)</span><button class="dismiss-btn" data-tid="e93767e7fb99" title="Marcar como hecho">−</button></div></div></div><div class="pcard"><div class="pcard-label">Angie</div><div class="pcard-proj-group"><div class="pcard-proj-name">Coti y Tita</div><div class="pcard-item" data-tid="efd5824dc60e"><span style="flex:1">— Elegir tela para butacas (2 muestras enviadas al cliente, esperando confirmación)</span><button class="dismiss-btn" data-tid="efd5824dc60e" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="9f87a7b217ff"><span style="flex:1">— Avisar a Andrés Cabrera (empapelador) con una semana de anticipación para instalación papel tapiz. Coti aún no le paga.</span><button class="dismiss-btn" data-tid="9f87a7b217ff" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="1891fa568c8b"><span style="flex:1">— Elegir mármol — cliente sin respuesta</span><button class="dismiss-btn" data-tid="1891fa568c8b" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="39e351f4d319"><span style="flex:1">— Resolver problema tablero de escritorio (Malena lo avanzó con medidas incorrectas)</span><button class="dismiss-btn" data-tid="39e351f4d319" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="eaae8a49debc"><span style="flex:1">— Definir colores de pintura con Malena</span><button class="dismiss-btn" data-tid="eaae8a49debc" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="a4eb8246bdf9"><span style="flex:1">— Decidir con contratista Eduardo sobre voltaje de luminaria que traen los clientes</span><button class="dismiss-btn" data-tid="a4eb8246bdf9" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="6bf564d36aae"><span style="flex:1">— Definir si zócalo va del mismo color que papel tapiz; consultar si Malena lo pinta</span><button class="dismiss-btn" data-tid="6bf564d36aae" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="ba3c9a593110"><span style="flex:1">— Escoger resto de luminarias con Ondine</span><button class="dismiss-btn" data-tid="ba3c9a593110" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="bd11c7ac5da1"><span style="flex:1">— Malena debe enviar muestras de esterillas</span><button class="dismiss-btn" data-tid="bd11c7ac5da1" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="b07e9fbd6e65"><span style="flex:1">— Medir puntos en obra para la cama eléctrica</span><button class="dismiss-btn" data-tid="b07e9fbd6e65" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="e94bd9780e00"><span style="flex:1">— Indicar a Malena que se van a usar tiradores en mueble de televisión</span><button class="dismiss-btn" data-tid="e94bd9780e00" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="bfcf4ee0ccc2"><span style="flex:1">— [FORMULARIO 27/05] Pedir rack a Tita y Coti para confirmar medidas en hornacina de mueble TV</span><button class="dismiss-btn" data-tid="bfcf4ee0ccc2" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="8e08b242917e"><span style="flex:1">— [FORMULARIO 28/05] Coordinar con Ondine la aprobación para fabricar los muebles</span><button class="dismiss-btn" data-tid="8e08b242917e" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="50674c802370"><span style="flex:1">— [FORMULARIO 28/05] Confirmar con los clientes si fueron a ver las luminarias y si quedan aprobadas para cotizar</span><button class="dismiss-btn" data-tid="50674c802370" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Nicole (Roosevelt)</div><div class="pcard-item" data-tid="0fac90d68d83"><span style="flex:1">— Cliente debe aprobar y pagar cotización Trazzo para entregar plano a la Inmobiliaria</span><button class="dismiss-btn" data-tid="0fac90d68d83" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="d15ba813c873"><span style="flex:1">— Ver diseño con Ondine (vistas para definir muebles y acabados)</span><button class="dismiss-btn" data-tid="d15ba813c873" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="67754b9fbe09"><span style="flex:1">— Ver elevaciones con Ondine para ubicar tomas eléctricas (independizar luz isla, interruptor pasillo servicio, cables TV)</span><button class="dismiss-btn" data-tid="67754b9fbe09" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="dcfcb3d97869"><span style="flex:1">— [FORMULARIO 22/05] Diseñar baño de visitas con Ondine para informar a Hans qué mármol comprar en Meglio</span><button class="dismiss-btn" data-tid="dcfcb3d97869" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="a9d456513421"><span style="flex:1">— [FORMULARIO 28/05] Elegir la piedra de cocina con Ondine y ver qué espacios quedan con techo gris</span><button class="dismiss-btn" data-tid="a9d456513421" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="18244ea5c4a4"><span style="flex:1">— Meglio debe enviar cotización de cocina (ya se eligieron acabados)</span><button class="dismiss-btn" data-tid="18244ea5c4a4" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="2921f21d16af"><span style="flex:1">— [FORMULARIO 22/05] Terminar de diseñar habitación principal</span><button class="dismiss-btn" data-tid="2921f21d16af" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Del Río (Casuarinas)</div><div class="pcard-item" data-tid="90d6e86bc673"><span style="flex:1">— Avanzar elevaciones para el proyecto (en paralelo con espera de permisos)</span><button class="dismiss-btn" data-tid="90d6e86bc673" title="Marcar como hecho">−</button></div></div></div><div class="pcard"><div class="pcard-label">Isa</div><div class="pcard-proj-group"><div class="pcard-proj-name">Terraza Anita Bittar</div><div class="pcard-item" data-tid="bdf390beafc8"><span style="flex:1">— Elegir luminarias (puntos de luz instalados, falta elegir artefactos)</span><button class="dismiss-btn" data-tid="bdf390beafc8" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="636d913f5c57"><span style="flex:1">— Elegir telas definitivas (Ondine fue ayer a ver telas — confirmar selección)</span><button class="dismiss-btn" data-tid="636d913f5c57" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="6214597b6209"><span style="flex:1">— Alfombra y toldos en producción (1 mes demora) — 2da semana junio termina obra sucia</span><button class="dismiss-btn" data-tid="6214597b6209" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Los Cabos (México)</div><div class="pcard-item" data-tid="910c8f796a4a"><span style="flex:1">— Cerrar diseño de closets (reunión lunes con Isabella y Patty)</span><button class="dismiss-btn" data-tid="910c8f796a4a" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="b6360041aea5"><span style="flex:1">— Cerrar plano eléctrico (tomacorrientes) post-reunión lunes y enviar para cotizar en México</span><button class="dismiss-btn" data-tid="b6360041aea5" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="0321da756f81"><span style="flex:1">— Ir a elegir telas con Patty antes del 4 de julio (ella se va de viaje y quiere ver acabados para comprar en México)</span><button class="dismiss-btn" data-tid="0321da756f81" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="511319d3ea39"><span style="flex:1">— Rediseñar playroom — a Patty no le convence el diseño actual</span><button class="dismiss-btn" data-tid="511319d3ea39" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="b56b88d19596"><span style="flex:1">— Cerrar muebles sueltos pendientes y built-in</span><button class="dismiss-btn" data-tid="b56b88d19596" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="f4725d27a772"><span style="flex:1">— Cotización muebles fijos, closets, cocina con proveedor mexicano</span><button class="dismiss-btn" data-tid="f4725d27a772" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="41ddd9b8e563"><span style="flex:1">— BBQ y muebles de exterior: sin cerrar</span><button class="dismiss-btn" data-tid="41ddd9b8e563" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Cocina Ondine (personal)</div><div class="pcard-item" data-tid="9713988e8ca3"><span style="flex:1">— Cotizar papel tapiz seleccionado</span><button class="dismiss-btn" data-tid="9713988e8ca3" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="2cc3508c5237"><span style="flex:1">— Elegir telas para banquetas del comedor diario</span><button class="dismiss-btn" data-tid="2cc3508c5237" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="1ea9f0570c05"><span style="flex:1">— Coordinar fecha de entrega del piso de la cocina</span><button class="dismiss-btn" data-tid="1ea9f0570c05" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Lindy Rothstein (Boca Ratón)</div><div class="pcard-item" data-tid="52b03a7fb5ac"><span style="flex:1">— Elegir tela para retomar el proyecto (proyecto pausado)</span><button class="dismiss-btn" data-tid="52b03a7fb5ac" title="Marcar como hecho">−</button></div></div></div><div class="pcard"><div class="pcard-label">Hugo</div><div class="pcard-proj-group"><div class="pcard-proj-name">Mallorca (España)</div><div class="pcard-item" data-tid="fb87370e975c"><span style="flex:1">— URGENTE: entregar plano eléctrico completo</span><button class="dismiss-btn" data-tid="fb87370e975c" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="20acbc3aeca2"><span style="flex:1">— URGENTE: entregar elevaciones</span><button class="dismiss-btn" data-tid="20acbc3aeca2" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Simón</div><div class="pcard-item" data-tid="34b53f2e2555"><span style="flex:1">— Continuar detalle arquitectónico en AUTOCAD (toda la casa)</span><button class="dismiss-btn" data-tid="34b53f2e2555" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="30dbb271211c"><span style="flex:1">— Diseño de interiorismo completo pendiente (aún no se inicia esta etapa)</span><button class="dismiss-btn" data-tid="30dbb271211c" title="Marcar como hecho">−</button></div></div></div><div class="pcard"><div class="pcard-label">TBD</div><div class="pcard-proj-group"><div class="pcard-proj-name">Blas Cerdeña (COX)</div><div class="pcard-item" data-tid="a0829712edeb"><span style="flex:1">— Presentar diseño de interiorismo a Blas Cerdeña (COX). Decidir si se toma el proyecto.</span><button class="dismiss-btn" data-tid="a0829712edeb" title="Marcar como hecho">−</button></div></div></div><div class="pcard"><div class="pcard-label">Angie</div><div class="pcard-proj-group"><div class="pcard-proj-name">Roosevelt Nicole</div><div class="pcard-item" data-tid="a37669a2b6ad"><span style="flex:1">— [FORMULARIO 22/05] Diseñar baño de visitas con Ondine para informar a Hans que marmol comprara en Meglio</span><button class="dismiss-btn" data-tid="a37669a2b6ad" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="20b389c0c578"><span style="flex:1">— [FORMULARIO 26/05] Nicole no ha pagado Trazzo</span><button class="dismiss-btn" data-tid="20b389c0c578" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="4ab0f1bd79e8"><span style="flex:1">— [FORMULARIO 28/05] Elegir la piedra de cocina con Ondine y ver qué espacios quedan con techo gris</span><button class="dismiss-btn" data-tid="4ab0f1bd79e8" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="4b8e485b9f67"><span style="flex:1">— [FORMULARIO 22/05] Terminar de diseñar habitación principal</span><button class="dismiss-btn" data-tid="4b8e485b9f67" title="Marcar como hecho">−</button></div></div></div></div></div>
+<div class="persona-section"><div class="section-heading">Por Proveedor</div><div class="persona-grid"><div class="pcard"><div class="pcard-label">Anahi Miami</div><div class="pcard-proj-group"><div class="pcard-proj-name">Joanna Solomon (Miami)</div><div class="pcard-item" data-tid="d35c35b3f223"><span style="flex:1">— Rodrigo viaja a Miami: tomar medidas y coordinar con Anahí instalación + drywall pendiente</span><button class="dismiss-btn" data-tid="d35c35b3f223" title="Marcar como hecho">−</button></div></div></div><div class="pcard"><div class="pcard-label">Andres papel</div><div class="pcard-proj-group"><div class="pcard-proj-name">Coti y Tita</div><div class="pcard-item" data-tid="9f87a7b217ff"><span style="flex:1">— Avisar a Andrés Cabrera (empapelador) con una semana de anticipación para instalación papel tapiz. Coti aún no le paga.</span><button class="dismiss-btn" data-tid="9f87a7b217ff" title="Marcar como hecho">−</button></div></div></div><div class="pcard"><div class="pcard-label">Eduardo</div><div class="pcard-proj-group"><div class="pcard-proj-name">Coti y Tita</div><div class="pcard-item" data-tid="a4eb8246bdf9"><span style="flex:1">— Decidir con contratista Eduardo sobre voltaje de luminaria que traen los clientes</span><button class="dismiss-btn" data-tid="a4eb8246bdf9" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Joelyn Pestana / Dionisio</div><div class="pcard-item" data-tid="e7948e011aab"><span style="flex:1">— Aprobación municipal: aprobar en junio para echar a andar todo (clientes viajan julio)</span><button class="dismiss-btn" data-tid="e7948e011aab" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Juan Fernando (Solana)</div><div class="pcard-item" data-tid="5b85853d64e2"><span style="flex:1">— [FORMULARIO 27/05] Cotizar pintura de paredes segundo piso (Yuriko no entrega paredes que no sean blancas)</span><button class="dismiss-btn" data-tid="5b85853d64e2" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Juan Miguel Raffo</div><div class="pcard-item" data-tid="62481ca43dd3"><span style="flex:1">— Cotización obra con maestro local en stand-by (Eduardo era caro, maestrito bajó precio pero calidad dudosa)</span><button class="dismiss-btn" data-tid="62481ca43dd3" title="Marcar como hecho">−</button></div></div></div><div class="pcard"><div class="pcard-label">Indesa Rodrigo</div><div class="pcard-proj-group"><div class="pcard-proj-name">Joanna Solomon (Miami)</div><div class="pcard-item" data-tid="165100550bad"><span style="flex:1">— Definir telas para Rodrigo — proyecto atrasado, bloqueado por indecisión en telas</span><button class="dismiss-btn" data-tid="165100550bad" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="4a16176b0cd9"><span style="flex:1">— Definir butaca de sala (no se está haciendo aún)</span><button class="dismiss-btn" data-tid="4a16176b0cd9" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="d35c35b3f223"><span style="flex:1">— Rodrigo viaja a Miami: tomar medidas y coordinar con Anahí instalación + drywall pendiente</span><button class="dismiss-btn" data-tid="d35c35b3f223" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Onrubia (Solana)</div><div class="pcard-item" data-tid="bc62af94b9f1"><span style="flex:1">— Aprobar telas — Rodrigo necesita telas en julio 2026 para fabricar. Lead time vencido.</span><button class="dismiss-btn" data-tid="bc62af94b9f1" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="162771514561"><span style="flex:1">— Ondine define telas finales con cliente en junio 2026</span><button class="dismiss-btn" data-tid="162771514561" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Lobby Solana</div><div class="pcard-item" data-tid="8b2eb06af225"><span style="flex:1">— Mandar a hacer sofá y elegir silla del portero</span><button class="dismiss-btn" data-tid="8b2eb06af225" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Joanna (Miami)</div><div class="pcard-item" data-tid="aca29d162718"><span style="flex:1">— Elegir silla faltante (1 silla por decidir diseño)</span><button class="dismiss-btn" data-tid="aca29d162718" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Juan Fernando (Solana)</div><div class="pcard-item" data-tid="e579f28c535a"><span style="flex:1">— Diseño sótano: mandar planos al proveedor para built-in, definir cava, taller, bar</span><button class="dismiss-btn" data-tid="e579f28c535a" title="Marcar como hecho">−</button></div></div></div><div class="pcard"><div class="pcard-label">Interdiseño Malena</div><div class="pcard-proj-group"><div class="pcard-proj-name">Coti y Tita</div><div class="pcard-item" data-tid="efd5824dc60e"><span style="flex:1">— Elegir tela para butacas (2 muestras enviadas al cliente, esperando confirmación)</span><button class="dismiss-btn" data-tid="efd5824dc60e" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="39e351f4d319"><span style="flex:1">— Resolver problema tablero de escritorio (Malena lo avanzó con medidas incorrectas)</span><button class="dismiss-btn" data-tid="39e351f4d319" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="eaae8a49debc"><span style="flex:1">— Definir colores de pintura con Malena</span><button class="dismiss-btn" data-tid="eaae8a49debc" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="6bf564d36aae"><span style="flex:1">— Definir si zócalo va del mismo color que papel tapiz; consultar si Malena lo pinta</span><button class="dismiss-btn" data-tid="6bf564d36aae" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="bd11c7ac5da1"><span style="flex:1">— Malena debe enviar muestras de esterillas</span><button class="dismiss-btn" data-tid="bd11c7ac5da1" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="e94bd9780e00"><span style="flex:1">— Indicar a Malena que se van a usar tiradores en mueble de televisión</span><button class="dismiss-btn" data-tid="e94bd9780e00" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="8e08b242917e"><span style="flex:1">— [FORMULARIO 28/05] Coordinar con Ondine la aprobación para fabricar los muebles</span><button class="dismiss-btn" data-tid="8e08b242917e" title="Marcar como hecho">−</button></div></div></div><div class="pcard"><div class="pcard-label">Meglio</div><div class="pcard-proj-group"><div class="pcard-proj-name">Nicole (Roosevelt)</div><div class="pcard-item" data-tid="dcfcb3d97869"><span style="flex:1">— [FORMULARIO 22/05] Diseñar baño de visitas con Ondine para informar a Hans qué mármol comprar en Meglio</span><button class="dismiss-btn" data-tid="dcfcb3d97869" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="18244ea5c4a4"><span style="flex:1">— Meglio debe enviar cotización de cocina (ya se eligieron acabados)</span><button class="dismiss-btn" data-tid="18244ea5c4a4" title="Marcar como hecho">−</button></div></div></div><div class="pcard"><div class="pcard-label">Trazzo</div><div class="pcard-proj-group"><div class="pcard-proj-name">PentHouse Nichi Belmont</div><div class="pcard-item" data-tid="bf9bfe5b84b4"><span style="flex:1">— Trazzo: pendiente entregar cotización (planos de iluminación ya entregados)</span><button class="dismiss-btn" data-tid="bf9bfe5b84b4" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Nicole (Roosevelt)</div><div class="pcard-item" data-tid="0fac90d68d83"><span style="flex:1">— Cliente debe aprobar y pagar cotización Trazzo para entregar plano a la Inmobiliaria</span><button class="dismiss-btn" data-tid="0fac90d68d83" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Terraza Anita Bittar</div><div class="pcard-item" data-tid="bdf390beafc8"><span style="flex:1">— Elegir luminarias (puntos de luz instalados, falta elegir artefactos)</span><button class="dismiss-btn" data-tid="bdf390beafc8" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Lobby Solana</div><div class="pcard-item" data-tid="512cbbd231cf"><span style="flex:1">— Elegir luces decorativas con Karen Manheim (Trazzo)</span><button class="dismiss-btn" data-tid="512cbbd231cf" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Medalith (Roosevelt)</div><div class="pcard-item" data-tid="655264b9f7b7"><span style="flex:1">— Trazzo: pendiente cotización (ya entregó planos de iluminación del proyecto)</span><button class="dismiss-btn" data-tid="655264b9f7b7" title="Marcar como hecho">−</button></div></div></div></div></div>
+<div class="persona-section"><div class="section-heading">Por Comunicación</div><div class="persona-grid"><div class="pcard"><div class="pcard-label">Llamadas</div><div class="pcard-person-group"><div class="pcard-person-name">Andres papel</div><div class="pcard-item" data-tid="9f87a7b217ff"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Coti y Tita</span> · Avisar a Andrés Cabrera (empapelador) con una semana de anticipación para instalación papel tapiz. Coti aún no le paga.</span><button class="dismiss-btn" data-tid="9f87a7b217ff" title="Marcar como hecho">−</button></div></div><div class="pcard-person-group"><div class="pcard-person-name">Interdiseño Malena</div><div class="pcard-item" data-tid="39e351f4d319"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Coti y Tita</span> · Resolver problema tablero de escritorio (Malena lo avanzó con medidas incorrectas)</span><button class="dismiss-btn" data-tid="39e351f4d319" title="Marcar como hecho">−</button></div></div><div class="pcard-person-group"><div class="pcard-person-name">Eduardo</div><div class="pcard-item" data-tid="a4eb8246bdf9"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Coti y Tita</span> · Decidir con contratista Eduardo sobre voltaje de luminaria que traen los clientes</span><button class="dismiss-btn" data-tid="a4eb8246bdf9" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="e7948e011aab"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Joelyn Pestana / Dionisio</span> · Aprobación municipal: aprobar en junio para echar a andar todo (clientes viajan julio)</span><button class="dismiss-btn" data-tid="e7948e011aab" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="62481ca43dd3"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Juan Miguel Raffo</span> · Cotización obra con maestro local en stand-by (Eduardo era caro, maestrito bajó precio pero calidad dudosa)</span><button class="dismiss-btn" data-tid="62481ca43dd3" title="Marcar como hecho">−</button></div></div><div class="pcard-person-group"><div class="pcard-person-name">Carlos</div><div class="pcard-item" data-tid="5976e88c4450"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Los Cabos (México)</span> · [FORMULARIO 27/05] Leoncio de Limasound debe confirmar si necesita reunión virtual (se enviaron planos)</span><button class="dismiss-btn" data-tid="5976e88c4450" title="Marcar como hecho">−</button></div></div><div class="pcard-person-group"><div class="pcard-person-name">Indesa Rodrigo</div><div class="pcard-item" data-tid="d35c35b3f223"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Joanna Solomon (Miami)</span> · Rodrigo viaja a Miami: tomar medidas y coordinar con Anahí instalación + drywall pendiente</span><button class="dismiss-btn" data-tid="d35c35b3f223" title="Marcar como hecho">−</button></div></div><div class="pcard-person-group"><div class="pcard-person-name">Alexia</div><div class="pcard-item" data-tid="e068ad376736"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Medalith (Roosevelt)</span> · Automatización con Tcinno: gestionar contratación</span><button class="dismiss-btn" data-tid="e068ad376736" title="Marcar como hecho">−</button></div></div><div class="pcard-person-group"><div class="pcard-person-name">Isa</div><div class="pcard-item" data-tid="1ea9f0570c05"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Cocina Ondine (personal)</span> · Coordinar fecha de entrega del piso de la cocina</span><button class="dismiss-btn" data-tid="1ea9f0570c05" title="Marcar como hecho">−</button></div></div></div><div class="pcard"><div class="pcard-label">Reuniones</div><div class="pcard-proj-group"><div class="pcard-proj-name">Coti y Tita</div><div class="pcard-item" data-tid="8e08b242917e"><span style="flex:1">— [FORMULARIO 28/05] Coordinar con Ondine la aprobación para fabricar los muebles</span><button class="dismiss-btn" data-tid="8e08b242917e" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Andrea Sacio (Puerto Rico)</div><div class="pcard-item" data-tid="98ed4ed8aca2"><span style="flex:1">— Andrea viene a Lima martes próximo (jun) para ver y elegir acabados — solo puede martes</span><button class="dismiss-btn" data-tid="98ed4ed8aca2" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="eb4ac2405ce3"><span style="flex:1">— Cerrar acabados y diseño con Andrea antes de agosto (bebé nace agosto — deadline biológico)</span><button class="dismiss-btn" data-tid="eb4ac2405ce3" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Joanna Solomon (Miami)</div><div class="pcard-item" data-tid="165100550bad"><span style="flex:1">— Definir telas para Rodrigo — proyecto atrasado, bloqueado por indecisión en telas</span><button class="dismiss-btn" data-tid="165100550bad" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="4a16176b0cd9"><span style="flex:1">— Definir butaca de sala (no se está haciendo aún)</span><button class="dismiss-btn" data-tid="4a16176b0cd9" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Onrubia (Solana)</div><div class="pcard-item" data-tid="bc62af94b9f1"><span style="flex:1">— Aprobar telas — Rodrigo necesita telas en julio 2026 para fabricar. Lead time vencido.</span><button class="dismiss-btn" data-tid="bc62af94b9f1" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="0ad18ff8f0a3"><span style="flex:1">— Reunión con cliente en julio (viene de viaje) — ver diseño y definir muebles sueltos pendientes</span><button class="dismiss-btn" data-tid="0ad18ff8f0a3" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="162771514561"><span style="flex:1">— Ondine define telas finales con cliente en junio 2026</span><button class="dismiss-btn" data-tid="162771514561" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Roosevelt Nicole</div><div class="pcard-item" data-tid="a37669a2b6ad"><span style="flex:1">— [FORMULARIO 22/05] Diseñar baño de visitas con Ondine para informar a Hans que marmol comprara en Meglio</span><button class="dismiss-btn" data-tid="a37669a2b6ad" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="20b389c0c578"><span style="flex:1">— [FORMULARIO 26/05] Nicole no ha pagado Trazzo</span><button class="dismiss-btn" data-tid="20b389c0c578" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Solana Juan Fernando</div><div class="pcard-item" data-tid="42cd06aef118"><span style="flex:1">— [FORMULARIO 27/05] Cotizar pintura de paredes segundo piso, ya que Yuriko no puede entregar paredes que no sean blancas.</span><button class="dismiss-btn" data-tid="42cd06aef118" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Terraza Anita Bittar</div><div class="pcard-item" data-tid="bdf390beafc8"><span style="flex:1">— Elegir luminarias (puntos de luz instalados, falta elegir artefactos)</span><button class="dismiss-btn" data-tid="bdf390beafc8" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Nicole (Roosevelt)</div><div class="pcard-item" data-tid="dcfcb3d97869"><span style="flex:1">— [FORMULARIO 22/05] Diseñar baño de visitas con Ondine para informar a Hans qué mármol comprar en Meglio</span><button class="dismiss-btn" data-tid="dcfcb3d97869" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Juan Miguel Raffo</div><div class="pcard-item" data-tid="d1e76a58affd"><span style="flex:1">— Reunión mañana con esposa Ceci — ver diseño sala/comedor/estar y definir muebles pendientes</span><button class="dismiss-btn" data-tid="d1e76a58affd" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Los Cabos (México)</div><div class="pcard-item" data-tid="910c8f796a4a"><span style="flex:1">— Cerrar diseño de closets (reunión lunes con Isabella y Patty)</span><button class="dismiss-btn" data-tid="910c8f796a4a" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="0321da756f81"><span style="flex:1">— Ir a elegir telas con Patty antes del 4 de julio (ella se va de viaje y quiere ver acabados para comprar en México)</span><button class="dismiss-btn" data-tid="0321da756f81" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="511319d3ea39"><span style="flex:1">— Rediseñar playroom — a Patty no le convence el diseño actual</span><button class="dismiss-btn" data-tid="511319d3ea39" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Lobby Solana</div><div class="pcard-item" data-tid="8b2eb06af225"><span style="flex:1">— Mandar a hacer sofá y elegir silla del portero</span><button class="dismiss-btn" data-tid="8b2eb06af225" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="512cbbd231cf"><span style="flex:1">— Elegir luces decorativas con Karen Manheim (Trazzo)</span><button class="dismiss-btn" data-tid="512cbbd231cf" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Medalith (Roosevelt)</div><div class="pcard-item" data-tid="b723a90a54eb"><span style="flex:1">— Cerrar diseño: falta mostrar propuesta actualizada a cliente (70% cerrado)</span><button class="dismiss-btn" data-tid="b723a90a54eb" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Joanna (Miami)</div><div class="pcard-item" data-tid="aca29d162718"><span style="flex:1">— Elegir silla faltante (1 silla por decidir diseño)</span><button class="dismiss-btn" data-tid="aca29d162718" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Juan Fernando (Solana)</div><div class="pcard-item" data-tid="e579f28c535a"><span style="flex:1">— Diseño sótano: mandar planos al proveedor para built-in, definir cava, taller, bar</span><button class="dismiss-btn" data-tid="e579f28c535a" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Blas Cerdeña (COX)</div><div class="pcard-item" data-tid="a0829712edeb"><span style="flex:1">— Presentar diseño de interiorismo a Blas Cerdeña (COX). Decidir si se toma el proyecto.</span><button class="dismiss-btn" data-tid="a0829712edeb" title="Marcar como hecho">−</button></div></div></div><div class="pcard"><div class="pcard-label">WhatsApp</div><div class="pcard-person-group"><div class="pcard-person-name">Interdiseño Malena</div><div class="pcard-item" data-tid="efd5824dc60e"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Coti y Tita</span> · Elegir tela para butacas (2 muestras enviadas al cliente, esperando confirmación)</span><button class="dismiss-btn" data-tid="efd5824dc60e" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="eaae8a49debc"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Coti y Tita</span> · Definir colores de pintura con Malena</span><button class="dismiss-btn" data-tid="eaae8a49debc" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="6bf564d36aae"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Coti y Tita</span> · Definir si zócalo va del mismo color que papel tapiz; consultar si Malena lo pinta</span><button class="dismiss-btn" data-tid="6bf564d36aae" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="bd11c7ac5da1"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Coti y Tita</span> · Malena debe enviar muestras de esterillas</span><button class="dismiss-btn" data-tid="bd11c7ac5da1" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="e94bd9780e00"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Coti y Tita</span> · Indicar a Malena que se van a usar tiradores en mueble de televisión</span><button class="dismiss-btn" data-tid="e94bd9780e00" title="Marcar como hecho">−</button></div></div><div class="pcard-person-group"><div class="pcard-person-name">Angie</div><div class="pcard-item" data-tid="1891fa568c8b"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Coti y Tita</span> · Elegir mármol — cliente sin respuesta</span><button class="dismiss-btn" data-tid="1891fa568c8b" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="bfcf4ee0ccc2"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Coti y Tita</span> · [FORMULARIO 27/05] Pedir rack a Tita y Coti para confirmar medidas en hornacina de mueble TV</span><button class="dismiss-btn" data-tid="bfcf4ee0ccc2" title="Marcar como hecho">−</button></div></div><div class="pcard-person-group"><div class="pcard-person-name">Ondine</div><div class="pcard-item" data-tid="50674c802370"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Coti y Tita</span> · [FORMULARIO 28/05] Confirmar con los clientes si fueron a ver las luminarias y si quedan aprobadas para cotizar</span><button class="dismiss-btn" data-tid="50674c802370" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="636d913f5c57"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Terraza Anita Bittar</span> · Elegir telas definitivas (Ondine fue ayer a ver telas — confirmar selección)</span><button class="dismiss-btn" data-tid="636d913f5c57" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="9713988e8ca3"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Cocina Ondine (personal)</span> · Cotizar papel tapiz seleccionado</span><button class="dismiss-btn" data-tid="9713988e8ca3" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="52b03a7fb5ac"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Lindy Rothstein (Boca Ratón)</span> · Elegir tela para retomar el proyecto (proyecto pausado)</span><button class="dismiss-btn" data-tid="52b03a7fb5ac" title="Marcar como hecho">−</button></div></div><div class="pcard-person-group"><div class="pcard-person-name">Trazzo</div><div class="pcard-item" data-tid="bf9bfe5b84b4"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">PentHouse Nichi Belmont</span> · Trazzo: pendiente entregar cotización (planos de iluminación ya entregados)</span><button class="dismiss-btn" data-tid="bf9bfe5b84b4" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="0fac90d68d83"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Nicole (Roosevelt)</span> · Cliente debe aprobar y pagar cotización Trazzo para entregar plano a la Inmobiliaria</span><button class="dismiss-btn" data-tid="0fac90d68d83" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="655264b9f7b7"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Medalith (Roosevelt)</span> · Trazzo: pendiente cotización (ya entregó planos de iluminación del proyecto)</span><button class="dismiss-btn" data-tid="655264b9f7b7" title="Marcar como hecho">−</button></div></div><div class="pcard-person-group"><div class="pcard-person-name">Isa</div><div class="pcard-item" data-tid="b6360041aea5"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Los Cabos (México)</span> · Cerrar plano eléctrico (tomacorrientes) post-reunión lunes y enviar para cotizar en México</span><button class="dismiss-btn" data-tid="b6360041aea5" title="Marcar como hecho">−</button></div><div class="pcard-item" data-tid="6214597b6209"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Terraza Anita Bittar</span> · Alfombra y toldos en producción (1 mes demora) — 2da semana junio termina obra sucia</span><button class="dismiss-btn" data-tid="6214597b6209" title="Marcar como hecho">−</button></div></div><div class="pcard-person-group"><div class="pcard-person-name">Vanessa</div><div class="pcard-item" data-tid="e93767e7fb99"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Joelyn Pestana / Dionisio</span> · Cliente debe elegir proveedor (se mandaron cotizaciones)</span><button class="dismiss-btn" data-tid="e93767e7fb99" title="Marcar como hecho">−</button></div></div><div class="pcard-person-group"><div class="pcard-person-name">Alexia</div><div class="pcard-item" data-tid="649f8f67ca79"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Joanna Solomon (Miami)</span> · Alfombras: cliente no ha pagado, indecisa. ¿Llegan al contenedor?</span><button class="dismiss-btn" data-tid="649f8f67ca79" title="Marcar como hecho">−</button></div></div><div class="pcard-person-group"><div class="pcard-person-name">Meglio</div><div class="pcard-item" data-tid="18244ea5c4a4"><span style="flex:1">— <span style="color:#8C7B6E;font-style:italic">Nicole (Roosevelt)</span> · Meglio debe enviar cotización de cocina (ya se eligieron acabados)</span><button class="dismiss-btn" data-tid="18244ea5c4a4" title="Marcar como hecho">−</button></div></div></div><div class="pcard"><div class="pcard-label">Presupuestos</div><div class="pcard-proj-group"><div class="pcard-proj-name">Juan Fernando (Solana)</div><div class="pcard-item" data-tid="5b85853d64e2"><span style="flex:1">— [FORMULARIO 27/05] Cotizar pintura de paredes segundo piso (Yuriko no entrega paredes que no sean blancas)</span><button class="dismiss-btn" data-tid="5b85853d64e2" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Los Cabos (México)</div><div class="pcard-item" data-tid="f4725d27a772"><span style="flex:1">— Cotización muebles fijos, closets, cocina con proveedor mexicano</span><button class="dismiss-btn" data-tid="f4725d27a772" title="Marcar como hecho">−</button></div></div></div><div class="pcard"><div class="pcard-label">Visitas a obra</div><div class="pcard-proj-group"><div class="pcard-proj-name">Coti y Tita</div><div class="pcard-item" data-tid="b07e9fbd6e65"><span style="flex:1">— Medir puntos en obra para la cama eléctrica</span><button class="dismiss-btn" data-tid="b07e9fbd6e65" title="Marcar como hecho">−</button></div></div><div class="pcard-proj-group"><div class="pcard-proj-name">Juan Fernando (Solana)</div><div class="pcard-item" data-tid="5c85d3c1b3ba"><span style="flex:1">— [FORMULARIO 26/05] Ver con Yuriko el detalle exacto de la puerta vaivén de cocina: hasta dónde llega el enchape y dónde va pintura en el marco</span><button class="dismiss-btn" data-tid="5c85d3c1b3ba" title="Marcar como hecho">−</button></div></div></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+  </div>
+
+  <div id="tab-gantt" class="tab-panel">
+    <p style="color:#8b857a;font-style:italic">Sin proyectos en el inventario.</p>
+  </div>
+
+  <div id="tab-categoria" class="tab-panel">
+    <div class="prt-wrap">
+  <div class="prt-head">
+    <div class="prt-head-row">
+      <div class="prt-head-cell">TORRE DE CONTROL &nbsp;·&nbsp; Por categoría — Diseño · Selección · Proveedor</div>
+    </div>
+  </div>
+  <div class="prt-body">
+    <div class="prt-row">
+      <div class="prt-cell">
+        <div class="cat-cols"><div class="cat-col"><div class="cat-header">Diseño</div><div class="cat-proj-group"><div class="cat-proj-name">COTI Y TITA<span class="arq-sub">Angie</span></div><div class="cat-task" data-tid="efd5824dc60e"><span class="ci-text" style="flex:1">Elegir tela para butacas (2 muestras enviadas al cliente, esperando confirmación)</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="efd5824dc60e" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="6bf564d36aae"><span class="ci-text" style="flex:1">Definir si zócalo va del mismo color que papel tapiz; consultar si Malena lo pinta</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="6bf564d36aae" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="b07e9fbd6e65"><span class="ci-text" style="flex:1">Medir puntos en obra para la cama eléctrica</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="b07e9fbd6e65" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="bfcf4ee0ccc2"><span class="ci-text" style="flex:1">[FORMULARIO 27/05] Pedir rack a Tita y Coti para confirmar medidas en hornacina de mueble TV</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="bfcf4ee0ccc2" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="8e08b242917e"><span class="ci-text" style="flex:1">[FORMULARIO 28/05] Coordinar con Ondine la aprobación para fabricar los muebles</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="8e08b242917e" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">PENTHOUSE NICHI BELMONT<span class="arq-sub">Vanessa</span></div><div class="cat-task" data-tid="e6ea5eef221d"><span class="ci-text" style="flex:1">Cerrar vistas de diseño y aprobar acabados (urgente para Roosevelt)</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="e6ea5eef221d" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">MALLORCA (ESPAÑA)<span class="arq-sub">Hugo</span></div><div class="cat-task" data-tid="fb87370e975c"><span class="ci-text" style="flex:1">URGENTE: entregar plano eléctrico completo</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="fb87370e975c" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="20acbc3aeca2"><span class="ci-text" style="flex:1">URGENTE: entregar elevaciones</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="20acbc3aeca2" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">ROOSEVELT NICOLE<span class="arq-sub">Angie</span></div><div class="cat-task" data-tid="a37669a2b6ad"><span class="ci-text" style="flex:1">[FORMULARIO 22/05] Diseñar baño de visitas con Ondine para informar a Hans que marmol comprara en Meglio</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="a37669a2b6ad" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="20b389c0c578"><span class="ci-text" style="flex:1">[FORMULARIO 26/05] Nicole no ha pagado Trazzo</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="20b389c0c578" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="4ab0f1bd79e8"><span class="ci-text" style="flex:1">[FORMULARIO 28/05] Elegir la piedra de cocina con Ondine y ver qué espacios quedan con techo gris</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="4ab0f1bd79e8" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="4b8e485b9f67"><span class="ci-text" style="flex:1">[FORMULARIO 22/05] Terminar de diseñar habitación principal</span><button class="dismiss-btn" data-tid="4b8e485b9f67" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">SOLANA JUAN FERNANDO<span class="arq-sub">Carlos</span></div><div class="cat-task" data-tid="cc12689ea9ca"><span class="ci-text" style="flex:1">[FORMULARIO 22/05] Bajar el precio del bar con otro acabado</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="cc12689ea9ca" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="4a7ed1583327"><span class="ci-text" style="flex:1">[FORMULARIO 26/05] Ver con Yuriko el detalle exacto de la puerta vaivén de cocina para ver hasta donde llega el enchape y dónde va pintura en el marco.</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="4a7ed1583327" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="42cd06aef118"><span class="ci-text" style="flex:1">[FORMULARIO 27/05] Cotizar pintura de paredes segundo piso, ya que Yuriko no puede entregar paredes que no sean blancas.</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="42cd06aef118" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="76ba865cd3c5"><span class="ci-text" style="flex:1">[FORMULARIO 26/05] Ondine debe escoger papel decorativo del estar</span><button class="dismiss-btn" data-tid="76ba865cd3c5" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">CASA LOS CABOS<span class="arq-sub">Carlos</span></div><div class="cat-task" data-tid="dc9694e5f7c0"><span class="ci-text" style="flex:1">[FORMULARIO 27/05] Leoncio de Limasound debe confirmar si necesita reunión virtual para explicarle proyecto, ya se le enviaron planos</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="dc9694e5f7c0" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">ANDREA SACIO (PUERTO RICO)<span class="arq-sub">Vanessa</span></div><div class="cat-task" data-tid="eb4ac2405ce3"><span class="ci-text" style="flex:1">Cerrar acabados y diseño con Andrea antes de agosto (bebé nace agosto — deadline biológico)</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="eb4ac2405ce3" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">JUAN FERNANDO (SOLANA)<span class="arq-sub">Carlos</span></div><div class="cat-task" data-tid="5c85d3c1b3ba"><span class="ci-text" style="flex:1">[FORMULARIO 26/05] Ver con Yuriko el detalle exacto de la puerta vaivén de cocina: hasta dónde llega el enchape y dónde va pintura en el marco</span><button class="dismiss-btn" data-tid="5c85d3c1b3ba" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="e579f28c535a"><span class="ci-text" style="flex:1">Diseño sótano: mandar planos al proveedor para built-in, definir cava, taller, bar</span><button class="dismiss-btn" data-tid="e579f28c535a" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="838daf3a4e8a"><span class="ci-text" style="flex:1">Falta diseñar cosas para el dúplex (detalles pendientes)</span><button class="dismiss-btn" data-tid="838daf3a4e8a" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">NICOLE (ROOSEVELT)<span class="arq-sub">Angie</span></div><div class="cat-task" data-tid="d15ba813c873"><span class="ci-text" style="flex:1">Ver diseño con Ondine (vistas para definir muebles y acabados)</span><button class="dismiss-btn" data-tid="d15ba813c873" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="67754b9fbe09"><span class="ci-text" style="flex:1">Ver elevaciones con Ondine para ubicar tomas eléctricas (independizar luz isla, interruptor pasillo servicio, cables TV)</span><button class="dismiss-btn" data-tid="67754b9fbe09" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="dcfcb3d97869"><span class="ci-text" style="flex:1">[FORMULARIO 22/05] Diseñar baño de visitas con Ondine para informar a Hans qué mármol comprar en Meglio</span><button class="dismiss-btn" data-tid="dcfcb3d97869" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="2921f21d16af"><span class="ci-text" style="flex:1">[FORMULARIO 22/05] Terminar de diseñar habitación principal</span><button class="dismiss-btn" data-tid="2921f21d16af" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">JUAN MIGUEL RAFFO<span class="arq-sub">Carlos</span></div><div class="cat-task" data-tid="d1e76a58affd"><span class="ci-text" style="flex:1">Reunión mañana con esposa Ceci — ver diseño sala/comedor/estar y definir muebles pendientes</span><button class="dismiss-btn" data-tid="d1e76a58affd" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">LOS CABOS (MÉXICO)<span class="arq-sub">Isa</span></div><div class="cat-task" data-tid="910c8f796a4a"><span class="ci-text" style="flex:1">Cerrar diseño de closets (reunión lunes con Isabella y Patty)</span><button class="dismiss-btn" data-tid="910c8f796a4a" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="b6360041aea5"><span class="ci-text" style="flex:1">Cerrar plano eléctrico (tomacorrientes) post-reunión lunes y enviar para cotizar en México</span><button class="dismiss-btn" data-tid="b6360041aea5" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="5976e88c4450"><span class="ci-text" style="flex:1">[FORMULARIO 27/05] Leoncio de Limasound debe confirmar si necesita reunión virtual (se enviaron planos)</span><button class="dismiss-btn" data-tid="5976e88c4450" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="511319d3ea39"><span class="ci-text" style="flex:1">Rediseñar playroom — a Patty no le convence el diseño actual</span><button class="dismiss-btn" data-tid="511319d3ea39" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">MEDALITH (ROOSEVELT)<span class="arq-sub">Alexia</span></div><div class="cat-task" data-tid="b723a90a54eb"><span class="ci-text" style="flex:1">Cerrar diseño: falta mostrar propuesta actualizada a cliente (70% cerrado)</span><button class="dismiss-btn" data-tid="b723a90a54eb" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">JOANNA (MIAMI)<span class="arq-sub">Alexia</span></div><div class="cat-task" data-tid="aca29d162718"><span class="ci-text" style="flex:1">Elegir silla faltante (1 silla por decidir diseño)</span><button class="dismiss-btn" data-tid="aca29d162718" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">SIMÓN<span class="arq-sub">Hugo</span></div><div class="cat-task" data-tid="34b53f2e2555"><span class="ci-text" style="flex:1">Continuar detalle arquitectónico en AUTOCAD (toda la casa)</span><button class="dismiss-btn" data-tid="34b53f2e2555" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="30dbb271211c"><span class="ci-text" style="flex:1">Diseño de interiorismo completo pendiente (aún no se inicia esta etapa)</span><button class="dismiss-btn" data-tid="30dbb271211c" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">DEL RÍO (CASUARINAS)<span class="arq-sub">Angie</span></div><div class="cat-task" data-tid="90d6e86bc673"><span class="ci-text" style="flex:1">Avanzar elevaciones para el proyecto (en paralelo con espera de permisos)</span><button class="dismiss-btn" data-tid="90d6e86bc673" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">BLAS CERDEÑA (COX)</div><div class="cat-task" data-tid="a0829712edeb"><span class="ci-text" style="flex:1">Presentar diseño de interiorismo a Blas Cerdeña (COX). Decidir si se toma el proyecto.</span><button class="dismiss-btn" data-tid="a0829712edeb" title="Marcar como hecho">−</button></div></div></div><div class="cat-col"><div class="cat-header">Selección</div><div class="cat-proj-group"><div class="cat-proj-name">COTI Y TITA<span class="arq-sub">Angie</span></div><div class="cat-task" data-tid="1891fa568c8b"><span class="ci-text" style="flex:1">Elegir mármol — cliente sin respuesta</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="1891fa568c8b" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="eaae8a49debc"><span class="ci-text" style="flex:1">Definir colores de pintura con Malena</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="eaae8a49debc" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="ba3c9a593110"><span class="ci-text" style="flex:1">Escoger resto de luminarias con Ondine</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="ba3c9a593110" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="50674c802370"><span class="ci-text" style="flex:1">[FORMULARIO 28/05] Confirmar con los clientes si fueron a ver las luminarias y si quedan aprobadas para cotizar</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="50674c802370" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">ANDREA SACIO (PUERTO RICO)<span class="arq-sub">Vanessa</span></div><div class="cat-task" data-tid="98ed4ed8aca2"><span class="ci-text" style="flex:1">Andrea viene a Lima martes próximo (jun) para ver y elegir acabados — solo puede martes</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="98ed4ed8aca2" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">JOANNA SOLOMON (MIAMI)<span class="arq-sub">Alexia</span></div><div class="cat-task" data-tid="165100550bad"><span class="ci-text" style="flex:1">Definir telas para Rodrigo — proyecto atrasado, bloqueado por indecisión en telas</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="165100550bad" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="4a16176b0cd9"><span class="ci-text" style="flex:1">Definir butaca de sala (no se está haciendo aún)</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="4a16176b0cd9" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="649f8f67ca79"><span class="ci-text" style="flex:1">Alfombras: cliente no ha pagado, indecisa. ¿Llegan al contenedor?</span><button class="dismiss-btn" data-tid="649f8f67ca79" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">ONRUBIA (SOLANA)<span class="arq-sub">Alexia</span></div><div class="cat-task" data-tid="bc62af94b9f1"><span class="ci-text" style="flex:1">Aprobar telas — Rodrigo necesita telas en julio 2026 para fabricar. Lead time vencido.</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="bc62af94b9f1" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="0ad18ff8f0a3"><span class="ci-text" style="flex:1">Reunión con cliente en julio (viene de viaje) — ver diseño y definir muebles sueltos pendientes</span><button class="dismiss-btn" data-tid="0ad18ff8f0a3" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="162771514561"><span class="ci-text" style="flex:1">Ondine define telas finales con cliente en junio 2026</span><button class="dismiss-btn" data-tid="162771514561" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">JUAN FERNANDO (SOLANA)<span class="arq-sub">Carlos</span></div><div class="cat-task" data-tid="e375956e243e"><span class="ci-text" style="flex:1">[FORMULARIO 22/05] Bajar el precio del bar con otro acabado</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="e375956e243e" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="466376508d8f"><span class="ci-text" style="flex:1">[FORMULARIO 26/05] Ondine debe escoger papel decorativo del estar</span><button class="dismiss-btn" data-tid="466376508d8f" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">TERRAZA ANITA BITTAR<span class="arq-sub">Isa</span></div><div class="cat-task" data-tid="bdf390beafc8"><span class="ci-text" style="flex:1">Elegir luminarias (puntos de luz instalados, falta elegir artefactos)</span><button class="dismiss-btn" data-tid="bdf390beafc8" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="636d913f5c57"><span class="ci-text" style="flex:1">Elegir telas definitivas (Ondine fue ayer a ver telas — confirmar selección)</span><button class="dismiss-btn" data-tid="636d913f5c57" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">NICOLE (ROOSEVELT)<span class="arq-sub">Angie</span></div><div class="cat-task" data-tid="a9d456513421"><span class="ci-text" style="flex:1">[FORMULARIO 28/05] Elegir la piedra de cocina con Ondine y ver qué espacios quedan con techo gris</span><button class="dismiss-btn" data-tid="a9d456513421" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">LOBBY SOLANA<span class="arq-sub">Carlos</span></div><div class="cat-task" data-tid="512cbbd231cf"><span class="ci-text" style="flex:1">Elegir luces decorativas con Karen Manheim (Trazzo)</span><button class="dismiss-btn" data-tid="512cbbd231cf" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="cbd51730eec4"><span class="ci-text" style="flex:1">Elegir arte para el lobby</span><button class="dismiss-btn" data-tid="cbd51730eec4" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">JUAN MIGUEL RAFFO<span class="arq-sub">Carlos</span></div><div class="cat-task" data-tid="4370a3ef66bd"><span class="ci-text" style="flex:1">Cerrar selección: lámpara, telas y materiales faltantes (diseño 70%)</span><button class="dismiss-btn" data-tid="4370a3ef66bd" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">LOS CABOS (MÉXICO)<span class="arq-sub">Isa</span></div><div class="cat-task" data-tid="0321da756f81"><span class="ci-text" style="flex:1">Ir a elegir telas con Patty antes del 4 de julio (ella se va de viaje y quiere ver acabados para comprar en México)</span><button class="dismiss-btn" data-tid="0321da756f81" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="41ddd9b8e563"><span class="ci-text" style="flex:1">BBQ y muebles de exterior: sin cerrar</span><button class="dismiss-btn" data-tid="41ddd9b8e563" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">COCINA ONDINE (PERSONAL)<span class="arq-sub">Isa</span></div><div class="cat-task" data-tid="9713988e8ca3"><span class="ci-text" style="flex:1">Cotizar papel tapiz seleccionado</span><button class="dismiss-btn" data-tid="9713988e8ca3" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="2cc3508c5237"><span class="ci-text" style="flex:1">Elegir telas para banquetas del comedor diario</span><button class="dismiss-btn" data-tid="2cc3508c5237" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">JOANNA (MIAMI)<span class="arq-sub">Alexia</span></div><div class="cat-task" data-tid="ed1b7ed0db06"><span class="ci-text" style="flex:1">3 cosas chicas aún por elegir (no especificadas)</span><button class="dismiss-btn" data-tid="ed1b7ed0db06" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">LINDY ROTHSTEIN (BOCA RATÓN)<span class="arq-sub">Isa</span></div><div class="cat-task" data-tid="52b03a7fb5ac"><span class="ci-text" style="flex:1">Elegir tela para retomar el proyecto (proyecto pausado)</span><button class="dismiss-btn" data-tid="52b03a7fb5ac" title="Marcar como hecho">−</button></div></div></div><div class="cat-col"><div class="cat-header">Proveedor</div><div class="cat-proj-group"><div class="cat-proj-name">COTI Y TITA<span class="arq-sub">Angie</span></div><div class="cat-task" data-tid="9f87a7b217ff"><span class="ci-text" style="flex:1">Avisar a Andrés Cabrera (empapelador) con una semana de anticipación para instalación papel tapiz. Coti aún no le paga.</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="9f87a7b217ff" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="39e351f4d319"><span class="ci-text" style="flex:1">Resolver problema tablero de escritorio (Malena lo avanzó con medidas incorrectas)</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="39e351f4d319" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="a4eb8246bdf9"><span class="ci-text" style="flex:1">Decidir con contratista Eduardo sobre voltaje de luminaria que traen los clientes</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="a4eb8246bdf9" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="bd11c7ac5da1"><span class="ci-text" style="flex:1">Malena debe enviar muestras de esterillas</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="bd11c7ac5da1" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="e94bd9780e00"><span class="ci-text" style="flex:1">Indicar a Malena que se van a usar tiradores en mueble de televisión</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="e94bd9780e00" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">PENTHOUSE NICHI BELMONT<span class="arq-sub">Vanessa</span></div><div class="cat-task" data-tid="bf9bfe5b84b4"><span class="ci-text" style="flex:1">Trazzo: pendiente entregar cotización (planos de iluminación ya entregados)</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="bf9bfe5b84b4" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">NICOLE (ROOSEVELT)<span class="arq-sub">Angie</span></div><div class="cat-task" data-tid="0fac90d68d83"><span class="ci-text" style="flex:1">Cliente debe aprobar y pagar cotización Trazzo para entregar plano a la Inmobiliaria</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="0fac90d68d83" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="18244ea5c4a4"><span class="ci-text" style="flex:1">Meglio debe enviar cotización de cocina (ya se eligieron acabados)</span><button class="dismiss-btn" data-tid="18244ea5c4a4" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">JOELYN PESTANA / DIONISIO<span class="arq-sub">Vanessa</span></div><div class="cat-task" data-tid="e7948e011aab"><span class="ci-text" style="flex:1">Aprobación municipal: aprobar en junio para echar a andar todo (clientes viajan julio)</span><span class="cat-urg-dot"></span><button class="dismiss-btn" data-tid="e7948e011aab" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="e93767e7fb99"><span class="ci-text" style="flex:1">Cliente debe elegir proveedor (se mandaron cotizaciones)</span><button class="dismiss-btn" data-tid="e93767e7fb99" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">JUAN FERNANDO (SOLANA)<span class="arq-sub">Carlos</span></div><div class="cat-task" data-tid="5b85853d64e2"><span class="ci-text" style="flex:1">[FORMULARIO 27/05] Cotizar pintura de paredes segundo piso (Yuriko no entrega paredes que no sean blancas)</span><button class="dismiss-btn" data-tid="5b85853d64e2" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">JOANNA SOLOMON (MIAMI)<span class="arq-sub">Alexia</span></div><div class="cat-task" data-tid="d35c35b3f223"><span class="ci-text" style="flex:1">Rodrigo viaja a Miami: tomar medidas y coordinar con Anahí instalación + drywall pendiente</span><button class="dismiss-btn" data-tid="d35c35b3f223" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">TERRAZA ANITA BITTAR<span class="arq-sub">Isa</span></div><div class="cat-task" data-tid="6214597b6209"><span class="ci-text" style="flex:1">Alfombra y toldos en producción (1 mes demora) — 2da semana junio termina obra sucia</span><button class="dismiss-btn" data-tid="6214597b6209" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">LOBBY SOLANA<span class="arq-sub">Carlos</span></div><div class="cat-task" data-tid="8b2eb06af225"><span class="ci-text" style="flex:1">Mandar a hacer sofá y elegir silla del portero</span><button class="dismiss-btn" data-tid="8b2eb06af225" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">MEDALITH (ROOSEVELT)<span class="arq-sub">Alexia</span></div><div class="cat-task" data-tid="655264b9f7b7"><span class="ci-text" style="flex:1">Trazzo: pendiente cotización (ya entregó planos de iluminación del proyecto)</span><button class="dismiss-btn" data-tid="655264b9f7b7" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="e068ad376736"><span class="ci-text" style="flex:1">Automatización con Tcinno: gestionar contratación</span><button class="dismiss-btn" data-tid="e068ad376736" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">JUAN MIGUEL RAFFO<span class="arq-sub">Carlos</span></div><div class="cat-task" data-tid="62481ca43dd3"><span class="ci-text" style="flex:1">Cotización obra con maestro local en stand-by (Eduardo era caro, maestrito bajó precio pero calidad dudosa)</span><button class="dismiss-btn" data-tid="62481ca43dd3" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">LOS CABOS (MÉXICO)<span class="arq-sub">Isa</span></div><div class="cat-task" data-tid="b56b88d19596"><span class="ci-text" style="flex:1">Cerrar muebles sueltos pendientes y built-in</span><button class="dismiss-btn" data-tid="b56b88d19596" title="Marcar como hecho">−</button></div><div class="cat-task" data-tid="f4725d27a772"><span class="ci-text" style="flex:1">Cotización muebles fijos, closets, cocina con proveedor mexicano</span><button class="dismiss-btn" data-tid="f4725d27a772" title="Marcar como hecho">−</button></div></div><div class="cat-proj-group"><div class="cat-proj-name">COCINA ONDINE (PERSONAL)<span class="arq-sub">Isa</span></div><div class="cat-task" data-tid="1ea9f0570c05"><span class="ci-text" style="flex:1">Coordinar fecha de entrega del piso de la cocina</span><button class="dismiss-btn" data-tid="1ea9f0570c05" title="Marcar como hecho">−</button></div></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+  </div>
+
+</div>
+<script>
+(function(){
+  /* ── Tabs ── */
+  const btns = document.querySelectorAll('.tab-btn');
+  const panels = document.querySelectorAll('.tab-panel');
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const t = btn.dataset.tab;
+      btns.forEach(b => b.classList.toggle('active', b.dataset.tab === t));
+      panels.forEach(p => p.classList.toggle('active', p.id === 'tab-' + t));
+    });
+  });
+
+  /* ── Print / PDF ── */
+  function doPrint(size) {
+    document.body.classList.remove('print-a4','print-a3');
+    document.body.classList.add('print-' + size);
+    let styleEl = document.getElementById('print-page-size');
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = 'print-page-size';
+      document.head.appendChild(styleEl);
+    }
+    const dim = size === 'a3' ? '297mm 420mm' : '210mm 297mm';
+    styleEl.textContent = '@page { size: A3 landscape; margin: 12mm 14mm; } }';
+    window.print();
+  }
+  document.getElementById('btn-a4').addEventListener('click', () => doPrint('a4'));
+  document.getElementById('btn-a3').addEventListener('click', () => doPrint('a3'));
+
+  /* ── Dismiss tasks (localStorage) ── */
+  const STORE = 'ondine_dismissed_v1';
+
+  function getDismissed() {
+    try { return JSON.parse(localStorage.getItem(STORE) || '[]'); } catch { return []; }
+  }
+  function saveDismissed(ids) {
+    try { localStorage.setItem(STORE, JSON.stringify(ids)); } catch {}
+  }
+
+  function hideById(id) {
+    document.querySelectorAll('[data-tid="' + id + '"]').forEach(el => {
+      if (el.tagName !== 'BUTTON') el.classList.add('task-dismissed');
+    });
+  }
+
+  /* Aplicar al cargar la página */
+  getDismissed().forEach(hideById);
+
+  /* Click en cualquier botón − */
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('.dismiss-btn');
+    if (!btn) return;
+    e.stopPropagation();
+    const id = btn.dataset.tid;
+    hideById(id);
+    const ids = getDismissed();
+    if (!ids.includes(id)) { ids.push(id); saveDismissed(ids); }
+  });
+
+  /* Restaurar todas las tareas ocultas */
+  const restoreBtn = document.getElementById('btn-restore');
+  if (restoreBtn) {
+    restoreBtn.addEventListener('click', () => {
+      localStorage.removeItem(STORE);
+      document.querySelectorAll('.task-dismissed').forEach(el => el.classList.remove('task-dismissed'));
+    });
+  }
+})();
+</script>
+</body>
+</html>
