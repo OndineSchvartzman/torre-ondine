@@ -5,23 +5,33 @@ on:
     - cron: '30 13 * * 1-6'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   generar-y-publicar:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-python@v5.6.0
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
       - name: Instalar dependencias
         run: pip install python-docx
+
       - name: Generar Torre de Control
         env:
           SHEET_ID_PENDIENTES: ${{ secrets.SHEET_ID_PENDIENTES }}
           SHEET_ID_FORMULARIO: ${{ secrets.SHEET_ID_FORMULARIO }}
         run: python scripts/generate_torre.py
-      - name: Publicar en Netlify
-        env:
-          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        run: python scripts/deploy_netlify.py
+
+      - name: Publicar en GitHub Pages
+        run: |
+          cp Torre_Control_*.html index.html
+          git config user.name "Torre Ondine Bot"
+          git config user.email "torre@ondine.bot"
+          git add index.html
+          git commit -m "Torre de Control $(date +'%Y-%m-%d')" || echo "Sin cambios"
+          git push
